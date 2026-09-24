@@ -35,9 +35,14 @@ import { ThreeStoryCards } from '@/components/sahaay/ThreeStoryCards';
 import { HowWeHelpSection } from '@/components/sahaay/HowWeHelpSection';
 import { HumanStoryCard } from '@/components/sahaay/HumanStoryCard';
 import { useLanguage } from '@/context/LanguageContext';
+import { apiClient } from '@/lib/api';
 
 export default function SahaayLandingPage() {
   const { language, setLanguage, t } = useLanguage();
+
+  // User authentication session state
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [authChecked, setAuthChecked] = useState(false);
 
   // Navigation scroll state for translucent frosted effect & organic parallax
   const [scrollY, setScrollY] = useState(0);
@@ -47,13 +52,12 @@ export default function SahaayLandingPage() {
   // Dynamic user-customizable bill amount for zero-demo reactive calculations
   const [customBillMultiplier, setCustomBillMultiplier] = useState<number>(1.0);
   const [customBillInput, setCustomBillInput] = useState<number>(184600);
-  const [dominoTriggered, setDominoTriggered] = useState(false);
 
   // Walkthrough interactive tour modal state
   const [showWalkthroughModal, setShowWalkthroughModal] = useState(false);
   const [walkthroughStep, setWalkthroughStep] = useState(0);
 
-  // Active case data & dynamic state
+  // Active case data & dynamic state (100% database driven, zero simulated fallbacks)
   const [activeCaseId, setActiveCaseId] = useState<string | null>(null);
   const [activeCaseData, setActiveCaseData] = useState<any>(null);
 
@@ -144,26 +148,50 @@ export default function SahaayLandingPage() {
     setCardTilt({ x: 0, y: 0, glareX: 50, glareY: 50 });
   };
 
-  // Scroll listener for sticky nav, organic parallax & active case loading
+  // Scroll listener for sticky nav, organic parallax & real-time database case synchronization
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const storedCase = sessionStorage.getItem('current_active_case_id') || localStorage.getItem('sahaay_active_case_id');
-      if (storedCase) {
-        setActiveCaseId(storedCase);
-        setActiveArchetype('active');
-        fetch(`http://localhost:8000/cases/${storedCase}`)
-          .then((res) => (res.ok ? res.json() : null))
-          .then((data) => {
-            if (data) {
-              setActiveCaseData(data);
-              const gap = data.analysis?.gap_result?.gap_amount || data.analysis?.gap_result?.potential_gap;
-              if (gap && gap > 0) {
-                setArrangedAmount(gap);
-              }
-            }
-          })
-          .catch(() => {});
+      const storedUser = localStorage.getItem('sahaay_user');
+      if (storedUser) {
+        try {
+          const user = JSON.parse(storedUser);
+          setCurrentUser(user);
+          const uid = user.user_id || user.id;
+          if (uid) {
+            apiClient.getUserDashboard(String(uid))
+              .then((dash) => {
+                if (dash && dash.active_case && dash.active_case.case_id) {
+                  setActiveCaseId(dash.active_case.case_id);
+                  setActiveCaseData(dash.active_case);
+                  setActiveArchetype('active');
+                  const realGap = dash.active_case.net_gap_amount || dash.active_case.analysis?.gap_result?.gap_amount;
+                  if (realGap && realGap > 0) {
+                    setArrangedAmount(realGap);
+                  }
+                } else {
+                  setActiveCaseId(null);
+                  setActiveCaseData(null);
+                }
+              })
+              .catch(() => {
+                setActiveCaseId(null);
+                setActiveCaseData(null);
+              });
+          }
+        } catch {
+          setCurrentUser(null);
+          setActiveCaseId(null);
+          setActiveCaseData(null);
+        }
+      } else {
+        // NOT SIGNED IN: zero simulated or demo data!
+        setCurrentUser(null);
+        setActiveCaseId(null);
+        setActiveCaseData(null);
+        sessionStorage.removeItem('current_active_case_id');
+        localStorage.removeItem('sahaay_active_case_id');
       }
+      setAuthChecked(true);
     }
 
     const handleScroll = () => {
@@ -178,6 +206,9 @@ export default function SahaayLandingPage() {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Dynamic Cloud Parting Progress (smoothly animates as user scrolls into Section 03)
+  const cloudPartProgress = Math.min(1, Math.max(0, (scrollY - 40) / 420));
 
   // Archetype Line Items Data (100% Real-World Structured Scenarios)
   const ARCHETYPE_DATA: Record<string, any[]> = {
@@ -610,24 +641,38 @@ export default function SahaayLandingPage() {
               </button>
             </div>
 
-            {/* Sign in with subtle pill border matching reference */}
-            <Link
-              href="/consent"
-              className={`hidden md:inline-flex text-xs font-semibold px-3.5 py-1.5 rounded-full transition-all ${
-                isScrolled
-                  ? 'text-[#596980] border border-slate-300 hover:text-[#0D1C34]'
-                  : 'text-white border border-white/30 hover:bg-white/10'
-              }`}
-            >
-              {t('nav_sign_in')}
-            </Link>
+            {/* Sign in / User Dashboard Profile */}
+            {currentUser ? (
+              <Link
+                href="/home"
+                className={`hidden md:inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-1.5 rounded-full transition-all ${
+                  isScrolled
+                    ? 'text-[#0D1C34] bg-slate-100 hover:bg-slate-200 border border-slate-300'
+                    : 'text-white bg-white/15 hover:bg-white/25 border border-white/30'
+                }`}
+              >
+                <UserCheck className="h-3.5 w-3.5 text-emerald-400" />
+                <span>{currentUser.name?.split(' ')[0] || 'Member'} • Dashboard</span>
+              </Link>
+            ) : (
+              <Link
+                href="/consent"
+                className={`hidden md:inline-flex text-xs font-semibold px-3.5 py-1.5 rounded-full transition-all ${
+                  isScrolled
+                    ? 'text-[#596980] border border-slate-300 hover:text-[#0D1C34]'
+                    : 'text-white border border-white/30 hover:bg-white/10'
+                }`}
+              >
+                {t('nav_sign_in')}
+              </Link>
+            )}
 
             {/* Primary Action Button (White Pill with arrow) */}
             <Link
-              href="/intake"
+              href={currentUser ? (activeCaseId ? `/case/${activeCaseId}/journey` : "/intake") : "/consent?redirect=/intake"}
               className="btn-pill-white text-xs py-2 px-4 sm:px-5 font-semibold shadow-md active:scale-95 inline-flex items-center gap-1.5"
             >
-              <span>{t('nav_start_cta')}</span>
+              <span>{currentUser ? (activeCaseId ? "Resume Case" : "New Intake") : t('nav_start_cta')}</span>
               <ArrowRight className="h-3 w-3" />
             </Link>
 
@@ -692,14 +737,21 @@ export default function SahaayLandingPage() {
               {t('nav_security')}
             </Link>
             <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs font-medium text-slate-600">
-              <Link href="/consent" className="font-bold text-[#2464A4]">{t('nav_sign_in')}</Link>
+              {currentUser ? (
+                <Link href="/home" className="font-bold text-[#2464A4] flex items-center gap-1.5">
+                  <UserCheck className="h-4 w-4 text-emerald-600" />
+                  <span>{currentUser.name} (Dashboard)</span>
+                </Link>
+              ) : (
+                <Link href="/consent" className="font-bold text-[#2464A4]">{t('nav_sign_in')}</Link>
+              )}
             </div>
           </div>
         )}
       </nav>
 
-      {/* Floating Active Case Banner Pill (Visible when active case is detected) */}
-      {activeCaseId && (
+      {/* Floating Active Case Banner Pill (ONLY visible when REAL user is signed in AND has an active case in DB) */}
+      {currentUser && activeCaseId && (
         <div className="fixed top-20 right-4 sm:right-8 z-40 animate-in fade-in slide-in-from-top-3 duration-300">
           <Link
             href={`/case/${activeCaseId}/journey`}
@@ -728,7 +780,7 @@ export default function SahaayLandingPage() {
           ========================================================== */}
       <section id="hero" className="relative h-screen min-h-[620px] max-h-[1080px] flex flex-col justify-between pt-20 sm:pt-24 pb-8 sm:pb-12 px-4 sm:px-6 lg:px-8 text-white overflow-hidden">
         
-        {/* Full-bleed background image with optical parallax */}
+        {/* Full-bleed background image with optical parallax & seamless alpha fade into canvas */}
         <div
           className="absolute inset-0 z-0 will-change-transform"
           style={{
@@ -741,20 +793,13 @@ export default function SahaayLandingPage() {
             fill
             priority
             className="object-cover object-bottom select-none pointer-events-none scale-105"
+            style={{
+              WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 72%, transparent 98%)',
+              maskImage: 'linear-gradient(to bottom, black 0%, black 72%, transparent 98%)',
+            }}
           />
           {/* Gentle top atmospheric shading behind navbar */}
           <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-[#0b2447]/30 to-transparent pointer-events-none" />
-
-          {/* Multi-layered atmospheric cloud mist fading smoothly into lavender canvas (#9BB0D8) */}
-          <div className="absolute inset-x-0 bottom-0 pointer-events-none overflow-hidden">
-            {/* Extended volumetric fog gradient: 280px tall */}
-            <div className="h-56 sm:h-80 bg-gradient-to-b from-transparent via-[#ffd8e4]/30 via-45% via-[#c0d0eb]/75 via-75% to-[#9BB0D8]" />
-
-            {/* Billowing cumulus mist layers (soft gaussian blur) */}
-            <div className="absolute inset-x-0 bottom-0 h-44 bg-[radial-gradient(ellipse_60%_80%_at_20%_100%,rgba(255,235,242,0.7),transparent_70%)] blur-xl" />
-            <div className="absolute inset-x-0 bottom-0 h-48 bg-[radial-gradient(ellipse_75%_90%_at_75%_100%,rgba(255,245,248,0.65),transparent_70%)] blur-2xl" />
-            <div className="absolute inset-x-0 bottom-0 h-36 bg-[radial-gradient(ellipse_90%_100%_at_50%_100%,#9BB0D8,transparent_80%)] blur-lg" />
-          </div>
         </div>
 
         {/* ==========================================================
@@ -796,10 +841,10 @@ export default function SahaayLandingPage() {
           {/* Dual Buttons stacked vertically matching reference */}
           <div className="mt-8 sm:mt-10 flex flex-col items-center justify-center gap-3.5">
             <Link
-              href="/intake"
+              href={currentUser ? (activeCaseId ? `/case/${activeCaseId}/journey` : "/intake") : "/consent?redirect=/intake"}
               className="btn-pill-white text-sm sm:text-base py-3 px-8 shadow-xl hover:shadow-2xl active:scale-95 transition-all inline-flex items-center gap-2 group"
             >
-              <span>{t('hero_start_btn')}</span>
+              <span>{currentUser ? (activeCaseId ? "Resume Your Emergency Journey" : t('hero_start_btn')) : t('hero_start_btn')}</span>
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
             <button
@@ -817,143 +862,94 @@ export default function SahaayLandingPage() {
           </div>
         </div>
 
-        {/* Soft Organic Cloud Wave & Living Mist Transition Horizon */}
-        <div className="absolute inset-x-0 bottom-0 pointer-events-none z-10 overflow-hidden leading-none select-none">
-          {/* Scroll-reactive dynamic cloud mist that deepens organically as user scrolls into Section 03 */}
-          <div
-            className="w-full h-32 sm:h-44 bg-gradient-to-b from-transparent via-[#9BB0D8]/65 to-[#9BB0D8] transition-opacity duration-300"
-            style={{
-              opacity: Math.min(1, 0.7 + scrollY / 250),
-            }}
-          />
-          {/* Gentle undulating organic cloud horizon silhouette */}
-          <svg
-            className="w-full h-12 sm:h-20 text-[#9BB0D8] -mb-1 block"
-            viewBox="0 0 1440 120"
-            fill="currentColor"
-            preserveAspectRatio="none"
-          >
-            <path
-              opacity="0.45"
-              d="M0,32 C120,55 240,15 360,45 C480,75 600,20 720,50 C840,80 960,30 1080,60 C1200,90 1320,40 1440,55 L1440,120 L0,120 Z"
-            />
-            <path
-              opacity="0.75"
-              d="M0,55 C160,85 320,35 480,65 C640,95 800,45 960,75 C1120,105 1280,55 1440,70 L1440,120 L0,120 Z"
-            />
-            <path
-              d="M0,75 C180,105 360,65 540,90 C720,115 900,75 1080,95 C1260,115 1380,85 1440,90 L1440,120 L0,120 Z"
-            />
-          </svg>
-        </div>
+        {/* Base of hero: subtle anchor */}
+        <div className="relative z-10" />
       </section>
 
       {/* ==========================================================
-          03. SERENE LAVENDER SKY TRANSITION & "AN EMERGENCY IS A CHAIN REACTION."
-          With Bespoke Kinetic Domino Connector
+          03. ORGANIC CLOUD PARTING AIR ANIMATION & "AN EMERGENCY IS A CHAIN REACTION."
+          Clouds of the exact same colors and texture as the landing page sky
+          gently part to the left and right in the air on scroll to unveil the headline.
           ========================================================== */}
       <section
         id="how-it-works"
-        className="relative pt-16 sm:pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center"
+        className="relative pt-20 sm:pt-28 pb-16 sm:pb-24 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center overflow-visible"
       >
-        <h2 className="font-serif-editorial text-4xl sm:text-6xl md:text-[4.25rem] font-normal tracking-tight text-[#0D1C34] leading-[1.12] max-w-4xl mx-auto">
-          {t('s3_title')}
-        </h2>
-
-        <p className="mt-5 text-base sm:text-lg md:text-xl text-[#0D1C34]/85 max-w-2xl mx-auto leading-relaxed font-normal">
-          {t('s3_subtitle')}
-        </p>
-
-        {/* Bespoke Interactive Kinetic Domino Chain Reaction Diagram */}
-        <div className="mt-10 max-w-4xl mx-auto">
-          <div className="text-center mb-3">
-            <button
-              type="button"
-              onClick={() => {
-                setDominoTriggered(true);
-                playCounterClearanceChime();
-                setTimeout(() => setDominoTriggered(false), 2600);
-              }}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#2464A4] bg-white/90 hover:bg-white px-3.5 py-1.5 rounded-full shadow-xs border border-white hover:scale-105 active:scale-95 transition-all cursor-pointer"
-            >
-              <Sparkles className="h-3.5 w-3.5 text-[#2464A4] animate-spin" />
-              <span>Tap to Trigger Interactive Domino Chain-Reaction Wave</span>
-            </button>
-          </div>
-
+        {/* Living Clouds Parting Air Veil on Scroll (Exact same colors as landing sky) */}
+        <div className="absolute inset-x-0 -top-24 sm:-top-32 h-80 sm:h-[420px] pointer-events-none z-10 overflow-hidden select-none">
+          {/* Left Cloud Bank (Peach/pink cumulus cloud gliding outward left) */}
           <div
-            onClick={() => {
-              setDominoTriggered(true);
-              playCounterClearanceChime();
-              setTimeout(() => setDominoTriggered(false), 2600);
+            className="absolute -left-16 sm:-left-28 top-0 w-84 sm:w-[520px] h-72 sm:h-96 will-change-transform transition-transform duration-75"
+            style={{
+              transform: `translate3d(${-cloudPartProgress * 240}px, ${-cloudPartProgress * 30}px, 0) scale(${1 + cloudPartProgress * 0.12})`,
+              opacity: Math.max(0, 1 - cloudPartProgress * 1.25),
             }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-4 relative cursor-pointer select-none"
           >
-            {/* Visual connector rail across cards */}
-            <div className={`hidden md:block absolute top-1/2 left-8 right-8 h-1 bg-gradient-to-r from-red-400 via-amber-400 to-[#2464A4] z-0 -translate-y-1/2 rounded-full transition-all duration-700 ${
-              dominoTriggered ? 'opacity-100 shadow-[0_0_12px_rgba(36,100,164,0.6)]' : 'opacity-35'
-            }`} />
-
-            {/* Domino 1: Incident Shock */}
-            <div className={`relative z-10 rounded-2xl p-5 bg-white/95 backdrop-blur-sm border shadow-md text-left transition-all duration-500 group ${
-              dominoTriggered
-                ? 'rotate-[-5deg] translate-x-2 shadow-2xl border-red-300 ring-2 ring-red-400/40'
-                : 'border-white/80 hover:-translate-y-1 hover:shadow-xl'
-            }`}>
-              <div className="flex items-center justify-between mb-3">
-                <span className="font-mono text-[11px] font-bold text-red-600 bg-red-50 border border-red-200 px-2.5 py-0.5 rounded-full">
-                  01 • The Shock
-                </span>
-                <div className="h-7 w-7 rounded-lg bg-red-100 flex items-center justify-center text-red-600 group-hover:scale-110 transition-transform">
-                  <HeartPulse className="h-4 w-4" />
-                </div>
-              </div>
-              <h4 className="text-sm font-bold text-[#0D1C34]">Emergency Occurrence</h4>
-              <p className="text-xs text-[#596980] mt-1.5 leading-snug">
-                Sudden hospitalization, accident collision, or income disruption. Attention is 100% on recovery.
-              </p>
-            </div>
-
-            {/* Domino 2: Policy Fracture */}
-            <div className={`relative z-10 rounded-2xl p-5 bg-white/95 backdrop-blur-sm border shadow-md text-left transition-all duration-500 delay-100 group ${
-              dominoTriggered
-                ? 'rotate-[-3deg] translate-x-1 shadow-2xl border-amber-300 ring-2 ring-amber-400/40'
-                : 'border-white/80 hover:-translate-y-1 hover:shadow-xl'
-            }`}>
-              <div className="flex items-center justify-between mb-3">
-                <span className="font-mono text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full">
-                  02 • The Fracture
-                </span>
-                <div className="h-7 w-7 rounded-lg bg-amber-100 flex items-center justify-center text-amber-700 group-hover:scale-110 transition-transform">
-                  <Scale className="h-4 w-4" />
-                </div>
-              </div>
-              <h4 className="text-sm font-bold text-[#0D1C34]">The Deductions Trap</h4>
-              <p className="text-xs text-[#596980] mt-1.5 leading-snug">
-                Insurers enforce proportionate room rent caps, plastic depreciation &amp; non-payable consumables.
-              </p>
-            </div>
-
-            {/* Domino 3: Counter Clearance */}
-            <div className={`relative z-10 rounded-2xl p-5 bg-white/95 backdrop-blur-sm border shadow-md text-left transition-all duration-500 delay-200 group ${
-              dominoTriggered
-                ? 'scale-105 shadow-2xl border-[#2464A4] ring-4 ring-[#2464A4]/40 bg-emerald-50/90'
-                : 'border-white/80 hover:-translate-y-1 hover:shadow-xl'
-            }`}>
-              <div className="flex items-center justify-between mb-3">
-                <span className="font-mono text-[11px] font-bold text-[#2464A4] bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded-full">
-                  03 • Resolution
-                </span>
-                <div className="h-7 w-7 rounded-lg bg-blue-100 flex items-center justify-center text-[#2464A4] group-hover:scale-110 transition-transform">
-                  <Shield className="h-4 w-4" />
-                </div>
-              </div>
-              <h4 className="text-sm font-bold text-[#0D1C34]">Sahaay FlowPass</h4>
-              <p className="text-xs text-[#596980] mt-1.5 leading-snug">
-                Clinical evidence isolates wrongful deductions. Bridge liquidity settles the net gap directly at discharge.
-              </p>
+            <div
+              className="relative w-full h-full animate-cloud-billow"
+              style={{
+                WebkitMaskImage: 'radial-gradient(ellipse 70% 60% at 45% 50%, black 20%, transparent 72%)',
+                maskImage: 'radial-gradient(ellipse 70% 60% at 45% 50%, black 20%, transparent 72%)',
+              }}
+            >
+              <Image
+                src="/images/hero_exact_sky.jpg"
+                alt="Peach sunset cloud parting left"
+                fill
+                className="object-cover object-left"
+              />
             </div>
           </div>
+
+          {/* Right Cloud Bank (Peach/pink cumulus cloud gliding outward right) */}
+          <div
+            className="absolute -right-16 sm:-right-28 top-0 w-84 sm:w-[520px] h-72 sm:h-96 will-change-transform transition-transform duration-75"
+            style={{
+              transform: `translate3d(${cloudPartProgress * 240}px, ${-cloudPartProgress * 30}px, 0) scale(${1 + cloudPartProgress * 0.12})`,
+              opacity: Math.max(0, 1 - cloudPartProgress * 1.25),
+            }}
+          >
+            <div
+              className="relative w-full h-full animate-cloud-billow-slow"
+              style={{
+                WebkitMaskImage: 'radial-gradient(ellipse 70% 60% at 55% 50%, black 20%, transparent 72%)',
+                maskImage: 'radial-gradient(ellipse 70% 60% at 55% 50%, black 20%, transparent 72%)',
+              }}
+            >
+              <Image
+                src="/images/hero_exact_sky.jpg"
+                alt="Peach sunset cloud parting right"
+                fill
+                className="object-cover object-right"
+              />
+            </div>
+          </div>
+
+          {/* Center Soft Dissolving Sunset Mist */}
+          <div
+            className="absolute inset-x-0 top-12 sm:top-20 h-52 sm:h-72 mx-auto max-w-2xl bg-[radial-gradient(ellipse_at_center,rgba(255,230,240,0.65),transparent_70%)] blur-2xl will-change-transform transition-opacity duration-75"
+            style={{
+              transform: `scale(${1 + cloudPartProgress * 0.35})`,
+              opacity: Math.max(0, 1 - cloudPartProgress * 1.45),
+            }}
+          />
+        </div>
+
+        {/* Revealed Headline: "An emergency is a chain reaction." */}
+        <div
+          className="relative z-20 will-change-transform transition-all duration-150"
+          style={{
+            transform: `translate3d(0, ${(1 - cloudPartProgress) * 26}px, 0)`,
+            opacity: Math.min(1, Math.max(0.12, cloudPartProgress * 1.35)),
+          }}
+        >
+          <h2 className="font-serif-editorial text-4xl sm:text-6xl md:text-[4.25rem] font-normal tracking-tight text-[#0D1C34] leading-[1.12] max-w-4xl mx-auto">
+            {t('s3_title')}
+          </h2>
+
+          <p className="mt-5 text-base sm:text-lg md:text-xl text-[#0D1C34]/85 max-w-2xl mx-auto leading-relaxed font-normal">
+            {t('s3_subtitle')}
+          </p>
         </div>
       </section>
 
@@ -1128,8 +1124,11 @@ export default function SahaayLandingPage() {
                   Whether a medical hospitalization, vehicle crash, or cash-flow disruption, Sahaay captures the full incident context and documents in one place.
                 </p>
               </div>
-              <Link href={activeCaseId ? `/case/${activeCaseId}` : "/intake?type=medical"} className="btn-pill-primary text-xs py-2.5 px-5">
-                {activeCaseId ? "Open Active Workspace" : "Start Intake"}
+              <Link
+                href={currentUser ? (activeCaseId ? `/case/${activeCaseId}` : "/intake?type=medical") : "/consent?redirect=/intake"}
+                className="btn-pill-primary text-xs py-2.5 px-5"
+              >
+                {currentUser ? (activeCaseId ? "Open Active Workspace" : "Start Intake") : "Sign In to Start Intake"}
               </Link>
             </div>
           )}
@@ -1145,8 +1144,11 @@ export default function SahaayLandingPage() {
                   Policy schedules are evaluated clause-by-clause. Proportionate deductions are strictly isolated to associated fees, fully shielding pharmacy, diagnostics and non-associated costs.
                 </p>
               </div>
-              <Link href={activeCaseId ? `/case/${activeCaseId}/evidence` : "/intake?type=medical"} className="btn-pill-primary text-xs py-2.5 px-5">
-                {activeCaseId ? "Inspect Policy Clauses" : "Analyze Your Policy"}
+              <Link
+                href={currentUser ? (activeCaseId ? `/case/${activeCaseId}/evidence` : "/intake?type=medical") : "/consent?redirect=/intake"}
+                className="btn-pill-primary text-xs py-2.5 px-5"
+              >
+                {currentUser ? (activeCaseId ? "Inspect Policy Clauses" : "Analyze Your Policy") : "Sign In to Analyze"}
               </Link>
             </div>
           )}
@@ -1162,8 +1164,11 @@ export default function SahaayLandingPage() {
                   Invoices and repair quotes are indexed line-by-line into Covered, Non-Associated, and Excluded buckets without LLM hallucinations.
                 </p>
               </div>
-              <Link href={activeCaseId ? `/case/${activeCaseId}/bill` : "/intake?type=medical"} className="btn-pill-primary text-xs py-2.5 px-5">
-                {activeCaseId ? "View Itemized Ledger" : "Upload Document"}
+              <Link
+                href={currentUser ? (activeCaseId ? `/case/${activeCaseId}/bill` : "/intake?type=medical") : "/consent?redirect=/intake"}
+                className="btn-pill-primary text-xs py-2.5 px-5"
+              >
+                {currentUser ? (activeCaseId ? "View Itemized Ledger" : "Upload Document") : "Sign In to Upload"}
               </Link>
             </div>
           )}
@@ -1179,8 +1184,11 @@ export default function SahaayLandingPage() {
                   Total invoice minus verified insurance approval yields the exact out-of-pocket deficit to be arranged for counter clearance.
                 </p>
               </div>
-              <Link href={activeCaseId ? `/case/${activeCaseId}/gap` : "/intake?type=medical"} className="btn-pill-primary text-xs py-2.5 px-5">
-                {activeCaseId ? "Inspect Gap Math" : "Calculate My Gap"}
+              <Link
+                href={currentUser ? (activeCaseId ? `/case/${activeCaseId}/gap` : "/intake?type=medical") : "/consent?redirect=/intake"}
+                className="btn-pill-primary text-xs py-2.5 px-5"
+              >
+                {currentUser ? (activeCaseId ? "Inspect Gap Math" : "Calculate My Gap") : "Sign In to Calculate"}
               </Link>
             </div>
           )}
@@ -1196,8 +1204,11 @@ export default function SahaayLandingPage() {
                   Verified income and hospital records populate bridge credit applications automatically. Zero repetitive form re-entry.
                 </p>
               </div>
-              <Link href={activeCaseId ? `/case/${activeCaseId}/funding` : "/intake?type=medical"} className="btn-pill-primary text-xs py-2.5 px-5">
-                {activeCaseId ? "Review Bridge Application" : "Explore Funding"}
+              <Link
+                href={currentUser ? (activeCaseId ? `/case/${activeCaseId}/funding` : "/intake?type=medical") : "/consent?redirect=/intake"}
+                className="btn-pill-primary text-xs py-2.5 px-5"
+              >
+                {currentUser ? (activeCaseId ? "Review Bridge Application" : "Explore Funding") : "Sign In to Fund"}
               </Link>
             </div>
           )}
@@ -1213,8 +1224,11 @@ export default function SahaayLandingPage() {
                   Settle the gap directly at the hospital or workshop desk via Paytm UPI with real-time soundbox confirmation.
                 </p>
               </div>
-              <Link href={activeCaseId ? `/case/${activeCaseId}/payment` : "/intake?type=medical"} className="btn-volt text-xs py-2.5 px-5">
-                {activeCaseId ? "Settle via Paytm" : "Start With Sahaay"}
+              <Link
+                href={currentUser ? (activeCaseId ? `/case/${activeCaseId}/payment` : "/intake?type=medical") : "/consent?redirect=/intake"}
+                className="btn-volt text-xs py-2.5 px-5"
+              >
+                {currentUser ? (activeCaseId ? "Settle via Paytm" : "Start Settlement") : "Sign In with Paytm"}
               </Link>
             </div>
           )}
@@ -1230,8 +1244,11 @@ export default function SahaayLandingPage() {
                   Safety buffer preserved, debt obligations managed, and insurance reimbursements tracked to restore household peace of mind.
                 </p>
               </div>
-              <Link href={activeCaseId ? `/case/${activeCaseId}/recovery` : "/intake?type=medical"} className="btn-pill-primary text-xs py-2.5 px-5">
-                {activeCaseId ? "View Recovery Plan" : "Protect Your Family"}
+              <Link
+                href={currentUser ? (activeCaseId ? `/case/${activeCaseId}/recovery` : "/intake?type=medical") : "/consent?redirect=/intake"}
+                className="btn-pill-primary text-xs py-2.5 px-5"
+              >
+                {currentUser ? (activeCaseId ? "View Recovery Plan" : "Protect Your Family") : "Sign In to Protect"}
               </Link>
             </div>
           )}
@@ -2243,10 +2260,10 @@ export default function SahaayLandingPage() {
 
             <div className="flex flex-col items-stretch sm:items-end">
               <Link
-                href={activeCaseId ? `/case/${activeCaseId}/payment` : `/intake?amount=${arrangedAmount}&type=${activeArchetype === 'active' ? 'medical' : activeArchetype}`}
+                href={currentUser ? (activeCaseId ? `/case/${activeCaseId}/payment` : `/intake?amount=${arrangedAmount}&type=${activeArchetype === 'active' ? 'medical' : activeArchetype}`) : "/consent?redirect=/intake"}
                 className="btn-volt justify-center text-xs py-3 px-6 shadow-md"
               >
-                <span>{t('pay_btn')}</span>
+                <span>{currentUser ? t('pay_btn') : "Sign In with Paytm to Settle"}</span>
               </Link>
               <span className="text-[10px] text-[#596980] mt-2 text-center sm:text-right">
                 {t('pay_sub')}

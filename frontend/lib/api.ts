@@ -318,3 +318,4 @@ class SahaayApiClient {
 }
 
 export const api = new SahaayApiClient();
+export const apiClient = api;
