@@ -744,6 +744,17 @@ export default function SahaayLandingPage() {
           />
           {/* Gentle top atmospheric shading behind navbar */}
           <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-[#0b2447]/30 to-transparent pointer-events-none" />
+
+          {/* Multi-layered atmospheric cloud mist fading smoothly into lavender canvas (#9BB0D8) */}
+          <div className="absolute inset-x-0 bottom-0 pointer-events-none overflow-hidden">
+            {/* Extended volumetric fog gradient: 280px tall */}
+            <div className="h-56 sm:h-80 bg-gradient-to-b from-transparent via-[#ffd8e4]/30 via-45% via-[#c0d0eb]/75 via-75% to-[#9BB0D8]" />
+
+            {/* Billowing cumulus mist layers (soft gaussian blur) */}
+            <div className="absolute inset-x-0 bottom-0 h-44 bg-[radial-gradient(ellipse_60%_80%_at_20%_100%,rgba(255,235,242,0.7),transparent_70%)] blur-xl" />
+            <div className="absolute inset-x-0 bottom-0 h-48 bg-[radial-gradient(ellipse_75%_90%_at_75%_100%,rgba(255,245,248,0.65),transparent_70%)] blur-2xl" />
+            <div className="absolute inset-x-0 bottom-0 h-36 bg-[radial-gradient(ellipse_90%_100%_at_50%_100%,#9BB0D8,transparent_80%)] blur-lg" />
+          </div>
         </div>
 
         {/* ==========================================================
@@ -806,8 +817,35 @@ export default function SahaayLandingPage() {
           </div>
         </div>
 
-        {/* Base of hero: subtle anchor */}
-        <div className="relative z-10" />
+        {/* Soft Organic Cloud Wave & Living Mist Transition Horizon */}
+        <div className="absolute inset-x-0 bottom-0 pointer-events-none z-10 overflow-hidden leading-none select-none">
+          {/* Scroll-reactive dynamic cloud mist that deepens organically as user scrolls into Section 03 */}
+          <div
+            className="w-full h-32 sm:h-44 bg-gradient-to-b from-transparent via-[#9BB0D8]/65 to-[#9BB0D8] transition-opacity duration-300"
+            style={{
+              opacity: Math.min(1, 0.7 + scrollY / 250),
+            }}
+          />
+          {/* Gentle undulating organic cloud horizon silhouette */}
+          <svg
+            className="w-full h-12 sm:h-20 text-[#9BB0D8] -mb-1 block"
+            viewBox="0 0 1440 120"
+            fill="currentColor"
+            preserveAspectRatio="none"
+          >
+            <path
+              opacity="0.45"
+              d="M0,32 C120,55 240,15 360,45 C480,75 600,20 720,50 C840,80 960,30 1080,60 C1200,90 1320,40 1440,55 L1440,120 L0,120 Z"
+            />
+            <path
+              opacity="0.75"
+              d="M0,55 C160,85 320,35 480,65 C640,95 800,45 960,75 C1120,105 1280,55 1440,70 L1440,120 L0,120 Z"
+            />
+            <path
+              d="M0,75 C180,105 360,65 540,90 C720,115 900,75 1080,95 C1260,115 1380,85 1440,90 L1440,120 L0,120 Z"
+            />
+          </svg>
+        </div>
       </section>
 
       {/* ==========================================================
