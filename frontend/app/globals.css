@@ -1,0 +1,311 @@
+@import url('https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400;1,6..72,500&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #9BB0D8;
+  --foreground: #0D1C34;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Newsreader', 'Playfair Display', Georgia, serif;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  scroll-behavior: smooth;
+  color-scheme: light;
+}
+
+body {
+  color: var(--foreground);
+  background-color: #9BB0D8;
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Editorial Typography */
+.font-serif-editorial {
+  font-family: 'Newsreader', 'Playfair Display', Georgia, serif;
+  font-feature-settings: "liga" 1, "dlig" 1;
+}
+
+/* White Pill Button (Reference "Start With Sahaay ->") */
+.btn-pill-white {
+  background: #FFFFFF;
+  color: #0D1C34;
+  border-radius: 9999px;
+  padding: 0.75rem 1.75rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  letter-spacing: -0.01em;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 20px rgba(13, 28, 52, 0.15);
+}
+
+.btn-pill-white:hover {
+  background: #F8FAFC;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(13, 28, 52, 0.22);
+}
+
+/* Translucent Button (Reference "Watch How It Works") */
+.btn-translucent-light {
+  background: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 9999px;
+  padding: 0.75rem 1.625rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-translucent-light:hover {
+  background: rgba(255, 255, 255, 0.26);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+}
+
+/* Primary Dark Pill Button */
+.btn-pill-primary {
+  background: #0D1C34;
+  color: #FFFFFF;
+  border-radius: 9999px;
+  padding: 0.8125rem 1.625rem;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 16px rgba(13, 28, 52, 0.2);
+}
+
+.btn-pill-primary:hover {
+  background: #2464A4;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px -4px rgba(36, 100, 164, 0.4);
+}
+
+/* Restrained Volt Accent Pill Button */
+.btn-volt {
+  background: #D9FF32;
+  color: #0D1C34;
+  border-radius: 9999px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 700;
+  font-size: 0.875rem;
+  letter-spacing: -0.01em;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-shadow: 0 4px 14px rgba(217, 255, 50, 0.35);
+}
+
+.btn-volt:hover {
+  background: #CCF025;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(217, 255, 50, 0.5);
+}
+
+/* ==========================================================
+   PEAK CREATIVE MOTION KEYFRAMES
+   Continuous Ambient Flight, Atmospheric Clouds, & Tactile Physics
+   ========================================================== */
+
+/* 1. Avian Wing-Beat & Sinusoidal Soaring Flight */
+@keyframes avianWingBeat {
+  0%, 100% {
+    transform: scaleY(1) rotate(0deg);
+  }
+  30% {
+    transform: scaleY(0.72) translateY(-2px) rotate(-1.5deg);
+  }
+  60% {
+    transform: scaleY(1.08) translateY(2px) rotate(1deg);
+  }
+}
+
+@keyframes soarFlockTraverse {
+  0% {
+    transform: translate3d(-8vw, 0px, 0) scale(0.92);
+  }
+  25% {
+    transform: translate3d(24vw, -18px, 0) scale(0.97);
+  }
+  50% {
+    transform: translate3d(55vw, -6px, 0) scale(1);
+  }
+  75% {
+    transform: translate3d(85vw, -24px, 0) scale(0.95);
+  }
+  100% {
+    transform: translate3d(112vw, -10px, 0) scale(0.9);
+  }
+}
+
+@keyframes soarFlockTraverseAlt {
+  0% {
+    transform: translate3d(108vw, -15px, 0) scale(0.75) scaleX(-1);
+  }
+  50% {
+    transform: translate3d(48vw, 12px, 0) scale(0.82) scaleX(-1);
+  }
+  100% {
+    transform: translate3d(-12vw, -5px, 0) scale(0.75) scaleX(-1);
+  }
+}
+
+/* 2. Atmospheric Billowing Clouds */
+@keyframes cloudBillowDrift {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.45;
+  }
+  50% {
+    transform: translate3d(22px, -12px, 0) scale(1.04);
+    opacity: 0.65;
+  }
+}
+
+@keyframes cloudBillowDriftSlow {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translate3d(-18px, 8px, 0) scale(1.03);
+    opacity: 0.58;
+  }
+}
+
+/* 3. Laser Document Scanline Beam */
+@keyframes laserScanSweep {
+  0% {
+    top: 0%;
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
+}
+
+/* 4. Domino Kinetic Ripple Line */
+@keyframes kineticCircuitPulse {
+  0% {
+    stroke-dashoffset: 200;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Utility Animation Classes */
+.animate-avian-wing {
+  animation: avianWingBeat 1.4s ease-in-out infinite;
+}
+
+.animate-avian-wing-fast {
+  animation: avianWingBeat 0.95s ease-in-out infinite;
+}
+
+.animate-flock-glide {
+  animation: soarFlockTraverse 32s linear infinite;
+  will-change: transform;
+}
+
+.animate-flock-glide-alt {
+  animation: soarFlockTraverseAlt 42s linear 6s infinite;
+  will-change: transform;
+}
+
+.animate-cloud-billow {
+  animation: cloudBillowDrift 14s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.animate-cloud-billow-slow {
+  animation: cloudBillowDriftSlow 18s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.animate-laser-scan {
+  animation: laserScanSweep 3.2s ease-in-out infinite;
+}
+
+/* Floating animation keyframes */
+@keyframes floatGentle {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(0.4deg);
+  }
+}
+
+@keyframes floatGentleAlt {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(7px) rotate(-0.5deg);
+  }
+}
+
+.animate-float-gentle {
+  animation: floatGentle 6s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: floatGentleAlt 7s ease-in-out 1.5s infinite;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.35);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.55);
+}
+
+/* Range input styling */
+input[type=range] {
+  accent-color: #2464A4;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

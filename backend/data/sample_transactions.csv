@@ -1,0 +1,17 @@
+date,description,amount,type,category
+2023-08-01,Salary,54000,credit,income
+2023-08-05,Rent,-12000,debit,rent
+2023-08-08,Groceries,-6000,debit,groceries
+2023-08-10,EMI,-6500,debit,emi
+2023-08-15,Utilities,-3400,debit,utilities
+2023-08-20,Transport,-4000,debit,transport
+2023-08-25,Subscriptions,-2000,debit,subscriptions
+2023-08-28,Misc,-4000,debit,misc
+2023-09-01,Salary,53000,credit,income
+2023-09-05,Rent,-12000,debit,rent
+2023-09-08,Groceries,-6000,debit,groceries
+2023-09-10,EMI,-6500,debit,emi
+2023-09-15,Utilities,-3400,debit,utilities
+2023-09-20,Transport,-4000,debit,transport
+2023-09-25,Subscriptions,-2000,debit,subscriptions
+2023-09-28,Misc,-4000,debit,misc
