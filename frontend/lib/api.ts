@@ -1,6 +1,10 @@
 import { CaseData, FlowPass, GapCalculation, PaymentRecord, RecoveryScenario, User } from './types';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_BASE =
+  process.env.NEXT_PUBLIC_API_URL ||
+  (typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+    ? 'https://sahaay-backend-h4dw.onrender.com'
+    : 'http://localhost:8000');
 
 class SahaayApiClient {
   private getHeaders(): HeadersInit {
