@@ -12,8 +12,8 @@ export function Header() {
   const currentCaseId = pathname.match(/\/case\/([^\/]+)/)?.[1];
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // On the landing page, the atmospheric hero contains its own integrated transparent navbar
-  if (pathname === '/') return null;
+  // On landing and company about pages, the atmospheric design contains its own integrated navbar
+  if (pathname === '/' || pathname === '/about') return null;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-[#D9D3EF]/60 bg-white/90 backdrop-blur-md transition-all">
