@@ -26,6 +26,16 @@ app.add_middleware(
 
 app.include_router(api_router)
 
+@app.get("/")
+async def root():
+    return {
+        "status": "online",
+        "service": "SAHAAY AI Backend API",
+        "health": "/health",
+        "docs": "/docs",
+        "version": "1.0.0"
+    }
+
 @app.get("/health")
 async def health_check():
     return {"status": "ok", "service": "SAHAAY AI Backend"}
