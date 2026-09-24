@@ -208,7 +208,8 @@ export default function SahaayLandingPage() {
   }, []);
 
   // Dynamic Cloud Parting Progress (smoothly animates as user scrolls into Section 03)
-  const cloudPartProgress = Math.min(1, Math.max(0, (scrollY - 40) / 420));
+  // Starts once user scrolls past initial hero headline (scrollY > 100), smoothly completes by scrollY = 620
+  const cloudPartProgress = Math.min(1, Math.max(0, (scrollY - 100) / 480));
 
   // Archetype Line Items Data (100% Real-World Structured Scenarios)
   const ARCHETYPE_DATA: Record<string, any[]> = {
@@ -778,9 +779,9 @@ export default function SahaayLandingPage() {
           Canada geese soaring in flight, and large high-contrast
           editorial serif headline with physical focal depth.
           ========================================================== */}
-      <section id="hero" className="relative h-screen min-h-[620px] max-h-[1080px] flex flex-col justify-between pt-20 sm:pt-24 pb-8 sm:pb-12 px-4 sm:px-6 lg:px-8 text-white overflow-hidden">
+      <section id="hero" className="relative h-screen min-h-[620px] max-h-[1080px] flex flex-col justify-between pt-20 sm:pt-24 pb-8 sm:pb-12 px-4 sm:px-6 lg:px-8 text-white overflow-hidden bg-[#9BB0D8]">
         
-        {/* Full-bleed background image with optical parallax & seamless alpha fade into canvas */}
+        {/* Full-bleed background image with optical parallax & seamless alpha fade */}
         <div
           className="absolute inset-0 z-0 will-change-transform"
           style={{
@@ -794,13 +795,22 @@ export default function SahaayLandingPage() {
             priority
             className="object-cover object-bottom select-none pointer-events-none scale-105"
             style={{
-              WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 72%, transparent 98%)',
-              maskImage: 'linear-gradient(to bottom, black 0%, black 72%, transparent 98%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, black 0%, black 50%, transparent 88%)',
+              maskImage: 'linear-gradient(to bottom, black 0%, black 50%, transparent 88%)',
             }}
           />
           {/* Gentle top atmospheric shading behind navbar */}
           <div className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-[#0b2447]/30 to-transparent pointer-events-none" />
         </div>
+
+        {/* Stationed seamless bottom transition zone (STATIONARY - does not shift with parallax)
+            Fades smoothly from transparent through #a69ec7 (bottom hue of sky photo) into 100% solid #9BB0D8 */}
+        <div
+          className="absolute inset-x-0 bottom-0 h-64 sm:h-80 pointer-events-none z-1"
+          style={{
+            background: 'linear-gradient(to bottom, transparent 0%, rgba(166, 158, 199, 0.4) 35%, rgba(160, 166, 208, 0.75) 70%, #9BB0D8 100%)',
+          }}
+        />
 
         {/* ==========================================================
             CONTINUOUS LIVING AVIAN KINEMATICS (NEVER STOPS MOVING)
@@ -868,88 +878,100 @@ export default function SahaayLandingPage() {
 
       {/* ==========================================================
           03. ORGANIC CLOUD PARTING AIR ANIMATION & "AN EMERGENCY IS A CHAIN REACTION."
-          Clouds of the exact same colors and texture as the landing page sky
-          gently part to the left and right in the air on scroll to unveil the headline.
+          Clouds in the full part before disappearing, parting smoothly to the left
+          and right on scroll to unveil the headline with zero visual difference line.
           ========================================================== */}
       <section
         id="how-it-works"
-        className="relative pt-20 sm:pt-28 pb-16 sm:pb-24 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center overflow-visible"
+        className="relative w-full pt-28 sm:pt-36 pb-20 sm:pb-28 overflow-hidden bg-[#9BB0D8]"
       >
-        {/* Living Clouds Parting Air Veil on Scroll (Exact same colors as landing sky) */}
-        <div className="absolute inset-x-0 -top-24 sm:-top-32 h-80 sm:h-[420px] pointer-events-none z-10 overflow-hidden select-none">
-          {/* Left Cloud Bank (Peach/pink cumulus cloud gliding outward left) */}
+        {/* Full-Bleed Edge-to-Edge Living Cloud Parting Stage (100% Viewport Width) */}
+        <div
+          className={`absolute inset-0 pointer-events-none z-10 select-none overflow-hidden transition-opacity duration-300 ${
+            cloudPartProgress >= 0.98 ? 'opacity-0' : 'opacity-100'
+          }`}
+          style={{
+            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 12%, black 82%, transparent 100%)',
+            maskImage: 'linear-gradient(to bottom, transparent 0%, black 12%, black 82%, transparent 100%)',
+          }}
+        >
+          {/* Left Cloud Bank (Peach/pink cumulus cloud spanning left 78% of screen) */}
           <div
-            className="absolute -left-16 sm:-left-28 top-0 w-84 sm:w-[520px] h-72 sm:h-96 will-change-transform transition-transform duration-75"
+            className="absolute left-0 top-0 w-[78vw] sm:w-[72vw] h-[480px] sm:h-[620px] will-change-transform transition-transform duration-75"
             style={{
-              transform: `translate3d(${-cloudPartProgress * 240}px, ${-cloudPartProgress * 30}px, 0) scale(${1 + cloudPartProgress * 0.12})`,
-              opacity: Math.max(0, 1 - cloudPartProgress * 1.25),
+              transform: `translate3d(${-cloudPartProgress * 110}%, ${-cloudPartProgress * 25}px, 0) scale(${1 + cloudPartProgress * 0.12})`,
+              opacity: Math.max(0, 1 - Math.pow(cloudPartProgress, 1.3)),
             }}
           >
             <div
               className="relative w-full h-full animate-cloud-billow"
               style={{
-                WebkitMaskImage: 'radial-gradient(ellipse 70% 60% at 45% 50%, black 20%, transparent 72%)',
-                maskImage: 'radial-gradient(ellipse 70% 60% at 45% 50%, black 20%, transparent 72%)',
+                WebkitMaskImage: 'radial-gradient(ellipse 90% 75% at 30% 50%, black 40%, transparent 88%)',
+                maskImage: 'radial-gradient(ellipse 90% 75% at 30% 50%, black 40%, transparent 88%)',
               }}
             >
               <Image
-                src="/images/hero_exact_sky.jpg"
+                src="/images/sunset_clouds.jpg"
                 alt="Peach sunset cloud parting left"
                 fill
+                priority
                 className="object-cover object-left"
               />
             </div>
           </div>
 
-          {/* Right Cloud Bank (Peach/pink cumulus cloud gliding outward right) */}
+          {/* Right Cloud Bank (Peach/pink cumulus cloud spanning right 78% of screen) */}
           <div
-            className="absolute -right-16 sm:-right-28 top-0 w-84 sm:w-[520px] h-72 sm:h-96 will-change-transform transition-transform duration-75"
+            className="absolute right-0 top-0 w-[78vw] sm:w-[72vw] h-[480px] sm:h-[620px] will-change-transform transition-transform duration-75"
             style={{
-              transform: `translate3d(${cloudPartProgress * 240}px, ${-cloudPartProgress * 30}px, 0) scale(${1 + cloudPartProgress * 0.12})`,
-              opacity: Math.max(0, 1 - cloudPartProgress * 1.25),
+              transform: `translate3d(${cloudPartProgress * 110}%, ${-cloudPartProgress * 25}px, 0) scale(${1 + cloudPartProgress * 0.12})`,
+              opacity: Math.max(0, 1 - Math.pow(cloudPartProgress, 1.3)),
             }}
           >
             <div
               className="relative w-full h-full animate-cloud-billow-slow"
               style={{
-                WebkitMaskImage: 'radial-gradient(ellipse 70% 60% at 55% 50%, black 20%, transparent 72%)',
-                maskImage: 'radial-gradient(ellipse 70% 60% at 55% 50%, black 20%, transparent 72%)',
+                WebkitMaskImage: 'radial-gradient(ellipse 90% 75% at 70% 50%, black 40%, transparent 88%)',
+                maskImage: 'radial-gradient(ellipse 90% 75% at 70% 50%, black 40%, transparent 88%)',
               }}
             >
               <Image
-                src="/images/hero_exact_sky.jpg"
+                src="/images/sunset_clouds.jpg"
                 alt="Peach sunset cloud parting right"
                 fill
+                priority
                 className="object-cover object-right"
               />
             </div>
           </div>
 
-          {/* Center Soft Dissolving Sunset Mist */}
+          {/* Center Soft Dissolving Sunset Mist & Valley Light */}
           <div
-            className="absolute inset-x-0 top-12 sm:top-20 h-52 sm:h-72 mx-auto max-w-2xl bg-[radial-gradient(ellipse_at_center,rgba(255,230,240,0.65),transparent_70%)] blur-2xl will-change-transform transition-opacity duration-75"
+            className="absolute inset-x-0 top-12 sm:top-20 h-72 sm:h-96 mx-auto w-full max-w-4xl bg-[radial-gradient(ellipse_at_center,rgba(255,230,240,0.7),rgba(255,215,225,0.3)_45%,transparent_75%)] blur-3xl will-change-transform transition-opacity duration-75"
             style={{
               transform: `scale(${1 + cloudPartProgress * 0.35})`,
-              opacity: Math.max(0, 1 - cloudPartProgress * 1.45),
+              opacity: Math.max(0, 1 - cloudPartProgress * 1.5),
             }}
           />
         </div>
 
-        {/* Revealed Headline: "An emergency is a chain reaction." */}
-        <div
-          className="relative z-20 will-change-transform transition-all duration-150"
-          style={{
-            transform: `translate3d(0, ${(1 - cloudPartProgress) * 26}px, 0)`,
-            opacity: Math.min(1, Math.max(0.12, cloudPartProgress * 1.35)),
-          }}
-        >
-          <h2 className="font-serif-editorial text-4xl sm:text-6xl md:text-[4.25rem] font-normal tracking-tight text-[#0D1C34] leading-[1.12] max-w-4xl mx-auto">
-            {t('s3_title')}
-          </h2>
+        {/* Revealed Headline: "An emergency is a chain reaction." in centered max-w-5xl container */}
+        <div className="max-w-5xl mx-auto text-center px-4 sm:px-6 lg:px-8 relative z-20">
+          <div
+            className="will-change-transform transition-all duration-150"
+            style={{
+              transform: `translate3d(0, ${(1 - cloudPartProgress) * 24}px, 0)`,
+              opacity: Math.min(1, Math.max(0.18, cloudPartProgress * 1.3)),
+            }}
+          >
+            <h2 className="font-serif-editorial text-4xl sm:text-6xl md:text-[4.25rem] font-normal tracking-tight text-[#0D1C34] leading-[1.12] max-w-4xl mx-auto">
+              {t('s3_title')}
+            </h2>
 
-          <p className="mt-5 text-base sm:text-lg md:text-xl text-[#0D1C34]/85 max-w-2xl mx-auto leading-relaxed font-normal">
-            {t('s3_subtitle')}
-          </p>
+            <p className="mt-5 text-base sm:text-lg md:text-xl text-[#0D1C34]/85 max-w-2xl mx-auto leading-relaxed font-normal">
+              {t('s3_subtitle')}
+            </p>
+          </div>
         </div>
       </section>
 
@@ -959,7 +981,13 @@ export default function SahaayLandingPage() {
           ========================================================== */}
       <section className="relative pb-16 sm:pb-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         {/* Soft atmospheric cloud puff along the left margin matching reference */}
-        <div className="absolute -left-28 -top-8 w-72 h-80 pointer-events-none opacity-40 mix-blend-screen overflow-hidden rounded-full blur-[2px]">
+        <div
+          className="absolute -left-28 -top-8 w-72 h-80 pointer-events-none opacity-30 mix-blend-screen overflow-hidden select-none"
+          style={{
+            WebkitMaskImage: 'radial-gradient(ellipse at center, black 25%, transparent 72%)',
+            maskImage: 'radial-gradient(ellipse at center, black 25%, transparent 72%)',
+          }}
+        >
           <Image
             src="/images/sunset_clouds.jpg"
             alt="Atmospheric sunset cloud puff"
