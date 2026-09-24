@@ -43,8 +43,8 @@ export function Header() {
           <Link href="/#flowpass" className="hover:text-[#101B35] transition-colors">
             FlowPass
           </Link>
-          <Link href="/#recovery" className="hover:text-[#101B35] transition-colors">
-            Recovery
+          <Link href="/about" className="hover:text-[#101B35] transition-colors">
+            About Sahaay
           </Link>
           <Link href="/#security" className="hover:text-[#101B35] transition-colors">
             Security
@@ -128,11 +128,11 @@ export function Header() {
               FlowPass
             </Link>
             <Link
-              href="/#recovery"
+              href="/about"
               onClick={() => setMobileMenuOpen(false)}
               className="py-1.5 hover:text-[#101B35]"
             >
-              Recovery
+              About Sahaay
             </Link>
             <Link
               href="/#security"

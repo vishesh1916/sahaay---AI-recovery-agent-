@@ -9,7 +9,6 @@ import {
   ArrowUpRight,
   Play,
   HeartPulse,
-  Activity,
   CreditCard,
   Lock,
   Building2,
@@ -18,7 +17,6 @@ import {
   Scale,
   Check,
   CheckCircle2,
-  Receipt,
   FileText,
   UserCheck,
   Globe,
@@ -27,9 +25,7 @@ import {
   Sparkles,
   AlertTriangle,
   ChevronRight,
-  TrendingUp,
 } from 'lucide-react';
-import { formatINR } from '@/lib/utils';
 import { SoaringGooseSolo, LivingGeeseFlock } from '@/components/sahaay/SoaringGeese';
 import { ThreeStoryCards } from '@/components/sahaay/ThreeStoryCards';
 import { HowWeHelpSection } from '@/components/sahaay/HowWeHelpSection';
@@ -49,10 +45,6 @@ export default function SahaayLandingPage() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Dynamic user-customizable bill amount for zero-demo reactive calculations
-  const [customBillMultiplier, setCustomBillMultiplier] = useState<number>(1.0);
-  const [customBillInput, setCustomBillInput] = useState<number>(184600);
-
   // Walkthrough interactive tour modal state
   const [showWalkthroughModal, setShowWalkthroughModal] = useState(false);
   const [walkthroughStep, setWalkthroughStep] = useState(0);
@@ -60,14 +52,6 @@ export default function SahaayLandingPage() {
   // Active case data & dynamic state (100% database driven, zero simulated fallbacks)
   const [activeCaseId, setActiveCaseId] = useState<string | null>(null);
   const [activeCaseData, setActiveCaseData] = useState<any>(null);
-
-  // Emergency Incident Archetype Switcher:
-  // 'active' (if active case exists), 'medical', 'vehicle', 'income', 'unexpected'
-  const [activeArchetype, setActiveArchetype] = useState<'active' | 'medical' | 'vehicle' | 'income' | 'unexpected'>('medical');
-
-  // Recovery simulator state (dynamic, editable by real users)
-  const [arrangedAmount, setArrangedAmount] = useState<number>(35000);
-  const [selectedRecoveryOption, setSelectedRecoveryOption] = useState<'available' | 'partial' | 'financing' | 'payment'>('partial');
 
   // Interactive Case Journey active station (0 to 6)
   const [activeJourneyStep, setActiveJourneyStep] = useState<number>(1); // default on 02 Insurance
@@ -83,49 +67,8 @@ export default function SahaayLandingPage() {
   const [showEvidenceDetail, setShowEvidenceDetail] = useState(false);
   const [selectedClause, setSelectedClause] = useState<'proportionate' | 'room_rent' | 'exclusions'>('proportionate');
 
-  // Bill category filter & scan animation indicator
-  const [billFilter, setBillFilter] = useState<'all' | 'associated' | 'non_associated' | 'excluded'>('all');
-  const [isScanning, setIsScanning] = useState(false);
-
   // Human review trigger state
   const [humanReviewRequested, setHumanReviewRequested] = useState(false);
-
-  // Tactile counter clearance stamp & sound state
-  const [isDeskCleared, setIsDeskCleared] = useState(false);
-
-  // Institutional web audio chime synthesizer
-  const playCounterClearanceChime = () => {
-    try {
-      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-      if (!AudioCtx) return;
-      const ctx = new AudioCtx();
-      
-      const osc1 = ctx.createOscillator();
-      const gain1 = ctx.createGain();
-      osc1.type = 'sine';
-      osc1.frequency.setValueAtTime(523.25, ctx.currentTime);
-      gain1.gain.setValueAtTime(0.18, ctx.currentTime);
-      gain1.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.55);
-      osc1.connect(gain1);
-      gain1.connect(ctx.destination);
-      osc1.start(ctx.currentTime);
-      osc1.stop(ctx.currentTime + 0.6);
-
-      const osc2 = ctx.createOscillator();
-      const gain2 = ctx.createGain();
-      osc2.type = 'sine';
-      osc2.frequency.setValueAtTime(659.25, ctx.currentTime + 0.1);
-      gain2.gain.setValueAtTime(0.0001, ctx.currentTime);
-      gain2.gain.setValueAtTime(0.22, ctx.currentTime + 0.1);
-      gain2.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.85);
-      osc2.connect(gain2);
-      gain2.connect(ctx.destination);
-      osc2.start(ctx.currentTime + 0.1);
-      osc2.stop(ctx.currentTime + 0.9);
-    } catch {
-      // Audio context ignored if blocked
-    }
-  };
 
   // 3D Perspective Tilt Event Handlers
   const handleCardMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -163,11 +106,7 @@ export default function SahaayLandingPage() {
                 if (dash && dash.active_case && dash.active_case.case_id) {
                   setActiveCaseId(dash.active_case.case_id);
                   setActiveCaseData(dash.active_case);
-                  setActiveArchetype('active');
-                  const realGap = dash.active_case.net_gap_amount || dash.active_case.analysis?.gap_result?.gap_amount;
-                  if (realGap && realGap > 0) {
-                    setArrangedAmount(realGap);
-                  }
+                  
                 } else {
                   setActiveCaseId(null);
                   setActiveCaseData(null);
@@ -211,327 +150,7 @@ export default function SahaayLandingPage() {
   // Starts once user scrolls past initial hero headline (scrollY > 100), smoothly completes by scrollY = 620
   const cloudPartProgress = Math.min(1, Math.max(0, (scrollY - 100) / 480));
 
-  // Archetype Line Items Data (100% Real-World Structured Scenarios)
-  const ARCHETYPE_DATA: Record<string, any[]> = {
-    medical: [
-      {
-        name: 'Room Rent (10 days × ₹7,000)',
-        amount: 70000,
-        category: 'associated',
-        status: 'Proportionate Cap',
-        covered: 50000,
-        deduction: 20000,
-        evidence: 'Policy Sec 2.1 • Capped at ₹5,000/day limit',
-      },
-      {
-        name: 'Surgeon Fees',
-        amount: 35000,
-        category: 'associated',
-        status: 'Proportionate (71.4%)',
-        covered: 25000,
-        deduction: 10000,
-        evidence: 'Policy Sec 4.2 • Room category upgrade linkage',
-      },
-      {
-        name: 'Doctor / Consultation Fees',
-        amount: 15000,
-        category: 'associated',
-        status: 'Proportionate (71.4%)',
-        covered: 10714,
-        deduction: 4286,
-        evidence: 'Policy Sec 4.2 • Associated provider fees',
-      },
-      {
-        name: 'Operation Theatre (OT) Charges',
-        amount: 12000,
-        category: 'associated',
-        status: 'Proportionate (71.4%)',
-        covered: 8571,
-        deduction: 3429,
-        evidence: 'Policy Sec 4.2 • OT facility expense',
-      },
-      {
-        name: 'Nursing & Ward Care',
-        amount: 8000,
-        category: 'associated',
-        status: 'Proportionate (71.4%)',
-        covered: 5714,
-        deduction: 2286,
-        evidence: 'Policy Sec 4.2 • Nursing care linkage',
-      },
-      {
-        name: 'Pharmacy & Prescribed Medicines',
-        amount: 18600,
-        category: 'non_associated',
-        status: '100% Protected',
-        covered: 18600,
-        deduction: 0,
-        evidence: 'Policy Sec 1.1 • Fully shielded under IRDAI rules',
-      },
-      {
-        name: 'Diagnostics & Pathology Tests',
-        amount: 12000,
-        category: 'non_associated',
-        status: '100% Protected',
-        covered: 12000,
-        deduction: 0,
-        evidence: 'Policy Sec 1.2 • Verified clinical necessity',
-      },
-      {
-        name: 'Surgical Mesh & Implants',
-        amount: 8000,
-        category: 'non_associated',
-        status: '100% Protected',
-        covered: 8000,
-        deduction: 0,
-        evidence: 'Bill Pg 2 • Standard implant allowance',
-      },
-      {
-        name: 'Consumables & Sanitization Kits',
-        amount: 6000,
-        category: 'excluded',
-        status: 'Non-Payable Exclusion',
-        covered: 0,
-        deduction: 6000,
-        evidence: 'Policy Sec 5.4 • General non-medical exclusion',
-      },
-    ],
-    vehicle: [
-      {
-        name: 'Front Bumper & Grille Replacement',
-        amount: 18500,
-        category: 'associated',
-        status: 'Plastic Depr (50%)',
-        covered: 9250,
-        deduction: 9250,
-        evidence: 'Motor Clause 3.1 • Standard IRDAI plastic depreciation rate',
-      },
-      {
-        name: 'Windshield Glass (Laminated OEM)',
-        amount: 14000,
-        category: 'non_associated',
-        status: '100% Protected',
-        covered: 14000,
-        deduction: 0,
-        evidence: 'Motor Clause 1.4 • Zero depreciation on glass components',
-      },
-      {
-        name: 'Right Fender & Sheet Metal Repair',
-        amount: 22000,
-        category: 'associated',
-        status: 'Metal Depr (25%)',
-        covered: 16500,
-        deduction: 5500,
-        evidence: 'Motor Clause 3.2 • Age-based metal schedule (5 yr slab)',
-      },
-      {
-        name: 'Paint & Labour Charges',
-        amount: 16000,
-        category: 'associated',
-        status: 'Standard Labour (75%)',
-        covered: 12000,
-        deduction: 4000,
-        evidence: 'Workshop Schedule 2 • Standard paint booth deductible',
-      },
-      {
-        name: 'Headlamp Assembly (Bi-LED Projector)',
-        amount: 12500,
-        category: 'non_associated',
-        status: '100% Protected',
-        covered: 12500,
-        deduction: 0,
-        evidence: 'Surveyor Report Pg 2 • Glass housing fully payable',
-      },
-      {
-        name: 'Consumable Fasteners, Sealant & Clips',
-        amount: 4500,
-        category: 'excluded',
-        status: 'Non-Payable Exclusion',
-        covered: 0,
-        deduction: 4500,
-        evidence: 'Policy Exclusion 4.8 • Consumable add-on missing from cover',
-      },
-      {
-        name: 'Dismantling & Salvage Retention Value',
-        amount: 5000,
-        category: 'excluded',
-        status: 'Salvage Deduction',
-        covered: 0,
-        deduction: 5000,
-        evidence: 'Surveyor Assessment • Insured scrap value retention',
-      },
-    ],
-    income: [
-      {
-        name: 'Unpaid Medical Recovery Leave (30 days)',
-        amount: 45000,
-        category: 'associated',
-        status: 'Direct Salary Loss',
-        covered: 0,
-        deduction: 45000,
-        evidence: 'HR Policy Sec 3.2 • Sick leave quota exhausted',
-      },
-      {
-        name: 'Residential Rent & Maintenance',
-        amount: 18000,
-        category: 'non_associated',
-        status: 'Fixed Living Obligation',
-        covered: 0,
-        deduction: 18000,
-        evidence: 'Tenancy Agreement Sec 5 • Unwaivable monthly housing cost',
-      },
-      {
-        name: 'Home Loan / Auto EMI Obligation',
-        amount: 14500,
-        category: 'non_associated',
-        status: 'Fixed Bank Liability',
-        covered: 0,
-        deduction: 14500,
-        evidence: 'Bank NACH Mandate • Auto-debit scheduled 5th of month',
-      },
-      {
-        name: 'Household Sustenance & Utilities',
-        amount: 12000,
-        category: 'non_associated',
-        status: 'Essential Buffer',
-        covered: 0,
-        deduction: 12000,
-        evidence: 'Verified Account Aggregator 3-Month Inflow Average',
-      },
-      {
-        name: 'Post-Discharge Medication & Physiotherapy',
-        amount: 6500,
-        category: 'associated',
-        status: 'Partial Health Benefit',
-        covered: 4500,
-        deduction: 2000,
-        evidence: 'Outpatient Add-On Sec 2 • Capped at ₹4,500/month',
-      },
-    ],
-    unexpected: [
-      {
-        name: 'Emergency Contrast MRI (Brain & Spine)',
-        amount: 16000,
-        category: 'non_associated',
-        status: '100% Protected',
-        covered: 16000,
-        deduction: 0,
-        evidence: 'Policy Sec 1.2 • Certified emergency diagnostic procedure',
-      },
-      {
-        name: 'Specialist Neuro Consultation & Triage',
-        amount: 8500,
-        category: 'associated',
-        status: 'Proportionate Cap',
-        covered: 6000,
-        deduction: 2500,
-        evidence: 'Policy Sec 4.1 • Non-empanelled specialist surcharge',
-      },
-      {
-        name: 'Contrast Dye, Syringes & Infusion Line',
-        amount: 4200,
-        category: 'excluded',
-        status: 'Non-Payable Exclusion',
-        covered: 0,
-        deduction: 4200,
-        evidence: 'Schedule B • IRDAI Non-medical consumable list',
-      },
-      {
-        name: 'High-Dependency Unit Observation (24 hrs)',
-        amount: 14000,
-        category: 'associated',
-        status: 'Room Tariff Ceiling',
-        covered: 10000,
-        deduction: 4000,
-        evidence: 'Policy Sec 2.1 • Capped against standard single room limit',
-      },
-    ],
-  };
-
-  const activeLineItems =
-    activeCaseData?.analysis?.gap_result?.line_item_results ||
-    activeCaseData?.analysis?.insurance_analysis?.line_items;
-
-  // Real extracted items from user case take precedence if 'active' selected
-  const effectiveBillItems =
-    activeArchetype === 'active' && activeLineItems && activeLineItems.length > 0
-      ? activeLineItems.map((item: any) => ({
-          name: item.name,
-          amount: item.amount,
-          category: item.category || 'associated',
-          status:
-            item.category === 'excluded'
-              ? 'Non-Payable Exclusion'
-              : item.category === 'non_associated'
-              ? '100% Protected'
-              : 'Proportionate Cap',
-          covered: item.covered_amount || 0,
-          deduction: item.deduction || 0,
-          evidence: item.reason || 'Verified from uploaded document evidence',
-        }))
-      : ARCHETYPE_DATA[activeArchetype === 'active' ? 'medical' : activeArchetype] || ARCHETYPE_DATA.medical;
-
-  // Dynamically scaled items based on user-customized total bill amount
-  const dynamicallyScaledItems = effectiveBillItems.map((item: any) => ({
-    ...item,
-    amount: Math.round((item.amount || 0) * customBillMultiplier),
-    covered: Math.round((item.covered || 0) * customBillMultiplier),
-    deduction: Math.round((item.deduction || 0) * customBillMultiplier),
-  }));
-
-  // Real-time calculated sums
-  const totalBillSum = dynamicallyScaledItems.reduce((acc: number, curr: any) => acc + (curr.amount || 0), 0);
-  const totalCoveredSum = dynamicallyScaledItems.reduce((acc: number, curr: any) => acc + (curr.covered || 0), 0);
-  const totalDeductionSum = dynamicallyScaledItems.reduce((acc: number, curr: any) => acc + (curr.deduction || 0), 0);
-
-  // Dynamic policy extraction numbers (zero hardcoding)
-  const pharmacyAmount =
-    dynamicallyScaledItems.find((i: any) => i.name.toLowerCase().includes('pharmacy') || i.name.toLowerCase().includes('medicine'))?.amount ||
-    Math.round(totalBillSum * 0.10);
-  const diagnosticAmount =
-    dynamicallyScaledItems.find((i: any) => i.name.toLowerCase().includes('diagnostic') || i.name.toLowerCase().includes('mri'))?.amount ||
-    Math.round(totalBillSum * 0.065);
-  const roomRentLimit =
-    activeCaseData?.analysis?.insurance_analysis?.policy_summary?.room_rent_limit ||
-    Math.round(totalBillSum * 0.027);
-
-  const countAll = dynamicallyScaledItems.length;
-  const countAssociated = dynamicallyScaledItems.filter((i: any) => i.category === 'associated').length;
-  const countNonAssociated = dynamicallyScaledItems.filter((i: any) => i.category === 'non_associated').length;
-  const countExcluded = dynamicallyScaledItems.filter((i: any) => i.category === 'excluded').length;
-
-  const filteredBillItems =
-    billFilter === 'all'
-      ? dynamicallyScaledItems
-      : dynamicallyScaledItems.filter((i: any) => i.category === billFilter);
-
-  // Dynamic simulation calculations based on real or modeled financial context
-  const totalSavings = activeCaseData?.analysis?.financial_context?.liquidity_buffer
-    ? activeCaseData.analysis.financial_context.liquidity_buffer + arrangedAmount
-    : 50000;
-  const existingObligations = activeCaseData?.analysis?.financial_context?.existing_obligations || 12400;
-  const remainingSavings = Math.max(0, totalSavings - arrangedAmount);
-  const emergencyBufferRatio = totalSavings > 0 ? (remainingSavings / totalSavings) * 100 : 0;
-  const paymentPressure =
-    arrangedAmount > 45000 ? 'High' : arrangedAmount > 20000 ? 'Manageable' : 'Low';
-
-  // Incident Archetype Switcher Handler
-  const handleSelectArchetype = (archetype: 'active' | 'medical' | 'vehicle' | 'income' | 'unexpected') => {
-    setActiveArchetype(archetype);
-    setIsScanning(true);
-    setTimeout(() => setIsScanning(false), 500);
-
-    const items =
-      archetype === 'active' && activeLineItems && activeLineItems.length > 0
-        ? activeLineItems
-        : ARCHETYPE_DATA[archetype === 'active' ? 'medical' : archetype];
-
-    const calculatedGap = items.reduce((acc: number, curr: any) => acc + (curr.deduction || 0), 0);
-    if (calculatedGap > 0) {
-      setArrangedAmount(calculatedGap);
-    }
-  };
-
+  // Real case calculations and line items are loaded dynamically inside authenticated case workspaces (/case/[id])
   // 7 Interactive Case Journey Stages
   const journeyStations = [
     { step: '01', title: 'The Emergency', desc: 'Medical, collision or wage loss', icon: HeartPulse },
@@ -586,9 +205,7 @@ export default function SahaayLandingPage() {
             <Link href="#flowpass" className="hover:text-white/80 transition-colors">
               {t('nav_flowpass')}
             </Link>
-            <Link href="#recovery" className="hover:text-white/80 transition-colors">
-              {t('nav_recovery')}
-            </Link>
+            <Link href="/about" className="hover:text-white/80 transition-colors">About Sahaay</Link>
             <Link href="#security" className="hover:text-white/80 transition-colors">
               {t('nav_security')}
             </Link>
@@ -731,9 +348,7 @@ export default function SahaayLandingPage() {
             <Link href="#flowpass" onClick={() => setMobileMenuOpen(false)} className="block py-1.5 text-sm font-semibold">
               {t('nav_flowpass')}
             </Link>
-            <Link href="#recovery" onClick={() => setMobileMenuOpen(false)} className="block py-1.5 text-sm font-semibold">
-              {t('nav_recovery')}
-            </Link>
+            <Link href="/about" onClick={() => setMobileMenuOpen(false)} className="block py-1.5 text-sm font-semibold">About Sahaay</Link>
             <Link href="#security" onClick={() => setMobileMenuOpen(false)} className="block py-1.5 text-sm font-semibold">
               {t('nav_security')}
             </Link>
@@ -766,7 +381,7 @@ export default function SahaayLandingPage() {
               Active Case: <strong className="font-mono text-[#2464A4]">#{activeCaseId.replace('CASE-', '')}</strong>
             </span>
             <span className="font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-              {formatINR(arrangedAmount)} Gap
+              Active Case Workspace
             </span>
             <ArrowRight className="h-3.5 w-3.5 text-[#2464A4] group-hover:translate-x-0.5 transition-transform" />
           </Link>
@@ -1064,26 +679,6 @@ export default function SahaayLandingPage() {
       </div>
 
       {/* ==========================================================
-          08. SECOND EDITORIAL STATEMENT: ABOUT SAHAAY
-          "One financial emergency. Multiple financial problems."
-          ========================================================== */}
-      <section className="pt-16 sm:pt-24 pb-12 sm:pb-16 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto text-center">
-        <div className="inline-flex items-center gap-2 text-xs font-bold tracking-widest uppercase text-white/80 mb-3">
-          <span className="h-1.5 w-1.5 rounded-full bg-[#D9FF32]" />
-          <span>ABOUT SAHAAY</span>
-        </div>
-
-        <h2 className="font-serif-editorial text-4xl sm:text-5xl md:text-[3.75rem] font-normal tracking-tight text-[#0D1C34] leading-[1.14] max-w-3xl mx-auto">
-          One financial emergency.<br />
-          Multiple financial problems.
-        </h2>
-
-        <p className="mt-5 text-base sm:text-lg text-[#0D1C34]/85 max-w-2xl mx-auto leading-relaxed font-normal">
-          A single event — whether an unexpected hospital surgery, a road vehicle accident, or temporary income disability — creates insurance, documentation, cash-flow, funding and payment crises all at once.
-        </p>
-      </section>
-
-      {/* ==========================================================
           09. THE CONNECTED JOURNEY: WORKFLOW CONTINUITY
           Clicking any of the 7 stations updates the live visual preview below!
           ========================================================== */}
@@ -1351,15 +946,15 @@ export default function SahaayLandingPage() {
               <div className="space-y-3 text-xs text-[#596980]">
                 <div className="p-3 rounded-xl bg-white border border-slate-200">
                   <span className="font-semibold text-[#0D1C34] block">Invoice Processing</span>
-                  <span className="font-mono text-[#2464A4] font-semibold">{formatINR(totalBillSum)}</span> verified against policy
+                  <span className="font-mono text-[#2464A4] font-semibold">Itemized Bill Audit</span> verified against policy
                 </div>
                 <div className="p-3 rounded-xl bg-white border border-slate-200">
                   <span className="font-semibold text-[#0D1C34] block">Deduction Isolation</span>
                   <span>Proportionate deduction on room rent &amp; parts</span>
                 </div>
                 <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800">
-                  <span className="font-semibold block font-mono">{formatINR(totalCoveredSum)} Approved</span>
-                  <span>Remaining gap: <strong className="font-mono">{formatINR(arrangedAmount)}</strong></span>
+                  <span className="font-semibold block font-mono">IRDAI Clause Protection</span>
+                  <span>Non-associated pharmacy &amp; diagnostics shielded</span>
                 </div>
               </div>
             </div>
@@ -1527,7 +1122,7 @@ export default function SahaayLandingPage() {
                 </div>
                 <div className="p-3 rounded-xl bg-white border border-slate-200">
                   <span className="font-semibold text-[#0D1C34] block">
-                    Gap Settlement: <strong className="font-mono text-[#2464A4]">{formatINR(arrangedAmount)}</strong>
+                    Zero-Delay Gap Settlement
                   </span>
                   <span>Direct disbursement to hospital or workshop billing counter.</span>
                 </div>
@@ -1652,7 +1247,7 @@ export default function SahaayLandingPage() {
                     <span className="text-emerald-700 font-semibold text-[11px]">Extracted</span>
                   </div>
                   <p className="text-xs text-[#596980] leading-relaxed font-serif italic">
-                    "If the Insured occupies a room category whose tariff exceeds the eligible room rent ({formatINR(roomRentLimit)}/day), associated medical expenses including surgeon, anesthesia, nursing, and operation theatre fees shall be borne in proportion."
+                    "If the Insured occupies a room category whose tariff exceeds the eligible room rent (e.g. ₹5,000/day limit), associated medical expenses including surgeon, anesthesia, nursing, and operation theatre fees shall be borne in proportion."
                   </p>
                 </div>
 
@@ -1662,7 +1257,7 @@ export default function SahaayLandingPage() {
                     <span className="text-emerald-700 font-bold">100% Protected</span>
                   </div>
                   <p className="text-xs text-emerald-800 leading-relaxed">
-                    Under IRDAI circular guidelines, non-associated expenses (pharmacy {formatINR(pharmacyAmount)} and diagnostic lab tests {formatINR(diagnosticAmount)}) CANNOT be proportionately slashed. Sahaay safeguards these funds from improper insurer cuts.
+                    Under IRDAI circular guidelines, non-associated expenses (prescribed pharmacy medicines and diagnostic lab tests) CANNOT be proportionately slashed. Sahaay safeguards these funds from improper insurer cuts.
                   </p>
                 </div>
               </div>
@@ -1703,603 +1298,7 @@ export default function SahaayLandingPage() {
         </div>
       </section>
 
-      {/* ==========================================================
-          12. HOSPITAL BILL INTELLIGENCE LEDGER
-          ========================================================== */}
-      <section className="py-12 sm:py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-6 gap-4">
-          <div>
-            <span className="inline-block text-xs font-bold uppercase tracking-widest text-[#2464A4] mb-2 bg-white px-3 py-1 rounded-full">
-              ITEMIZED DOCUMENT INTELLIGENCE
-            </span>
-            <h2 className="font-serif-editorial text-3xl sm:text-5xl font-normal text-[#0D1C34] tracking-tight">
-              Interactive Bill &amp; Gap Intelligence.
-            </h2>
-            <p className="mt-2 text-sm sm:text-base text-[#0D1C34]/80 max-w-xl">
-              Switch real-world emergency archetypes or explore your uploaded case. Sahaay isolates proportionate deductions strictly to associated expenses while safeguarding protected items.
-            </p>
-          </div>
 
-          {/* Filter Tabs */}
-          <div className="flex flex-wrap gap-1.5 bg-white/70 p-1.5 rounded-full border border-white">
-            <button
-              onClick={() => setBillFilter('all')}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
-                billFilter === 'all' ? 'bg-[#0D1C34] text-white shadow-xs' : 'text-[#596980] hover:text-[#0D1C34]'
-              }`}
-            >
-              All Items ({countAll})
-            </button>
-            <button
-              onClick={() => setBillFilter('associated')}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
-                billFilter === 'associated' ? 'bg-[#2464A4] text-white shadow-xs' : 'text-[#596980] hover:text-[#0D1C34]'
-              }`}
-            >
-              Associated ({countAssociated})
-            </button>
-            <button
-              onClick={() => setBillFilter('non_associated')}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
-                billFilter === 'non_associated' ? 'bg-emerald-700 text-white shadow-xs' : 'text-[#596980] hover:text-[#0D1C34]'
-              }`}
-            >
-              Protected ({countNonAssociated})
-            </button>
-            <button
-              onClick={() => setBillFilter('excluded')}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
-                billFilter === 'excluded' ? 'bg-amber-600 text-white shadow-xs' : 'text-[#596980] hover:text-[#0D1C34]'
-              }`}
-            >
-              Exclusions ({countExcluded})
-            </button>
-          </div>
-        </div>
-
-        {/* Archetype Selector Strip */}
-        <div className="flex flex-wrap items-center gap-2 mb-6">
-          <span className="text-xs font-bold text-[#0D1C34] uppercase tracking-wider mr-1">
-            Emergency Archetype:
-          </span>
-          {activeCaseId && (
-            <button
-              onClick={() => handleSelectArchetype('active')}
-              className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all flex items-center gap-1.5 ${
-                activeArchetype === 'active'
-                  ? 'bg-[#0D1C34] text-white shadow-md ring-2 ring-[#0D1C34]/30'
-                  : 'bg-white text-[#0D1C34] border border-slate-200 hover:bg-slate-100'
-              }`}
-            >
-              <Sparkles className="h-3.5 w-3.5 text-[#D9FF32]" />
-              <span>My Uploaded Bill (Live)</span>
-            </button>
-          )}
-          <button
-            onClick={() => handleSelectArchetype('medical')}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
-              activeArchetype === 'medical'
-                ? 'bg-[#2464A4] text-white shadow-md ring-2 ring-[#2464A4]/30'
-                : 'bg-white text-[#0D1C34] border border-slate-200 hover:bg-slate-100'
-            }`}
-          >
-            🏥 Health Surgery Inpatient
-          </button>
-          <button
-            onClick={() => handleSelectArchetype('vehicle')}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
-              activeArchetype === 'vehicle'
-                ? 'bg-[#2464A4] text-white shadow-md ring-2 ring-[#2464A4]/30'
-                : 'bg-white text-[#0D1C34] border border-slate-200 hover:bg-slate-100'
-            }`}
-          >
-            🚗 Vehicle Collision Repair
-          </button>
-          <button
-            onClick={() => handleSelectArchetype('income')}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
-              activeArchetype === 'income'
-                ? 'bg-[#2464A4] text-white shadow-md ring-2 ring-[#2464A4]/30'
-                : 'bg-white text-[#0D1C34] border border-slate-200 hover:bg-slate-100'
-            }`}
-          >
-            💼 Income &amp; EMI Relief
-          </button>
-          <button
-            onClick={() => handleSelectArchetype('unexpected')}
-            className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
-              activeArchetype === 'unexpected'
-                ? 'bg-[#2464A4] text-white shadow-md ring-2 ring-[#2464A4]/30'
-                : 'bg-white text-[#0D1C34] border border-slate-200 hover:bg-slate-100'
-            }`}
-          >
-            ⚡ Emergency Diagnostics
-          </button>
-        </div>
-
-        {/* Real-Time Live Bill Customizer (Zero Demo Data Guarantee) */}
-        <div className="bg-white/95 backdrop-blur-md rounded-3xl p-5 sm:p-6 border border-[#2464A4]/25 shadow-lg mb-8">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-2xl bg-[#2464A4]/10 text-[#2464A4] flex items-center justify-center shrink-0">
-                <Receipt className="h-5 w-5" />
-              </div>
-              <div>
-                <h4 className="text-sm font-bold text-[#0D1C34] flex items-center gap-2">
-                  <span>Interactive Real-World Bill Scaler</span>
-                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                    Live Mathematical Computation
-                  </span>
-                </h4>
-                <p className="text-xs text-[#596980]">
-                  Select invoice total presets or enter custom figures. All deductions, protected ceilings, and Paytm FlowPass advance calculate dynamically:
-                </p>
-              </div>
-            </div>
-
-            {/* Quick Presets */}
-            <div className="flex flex-wrap items-center gap-2">
-              {[50000, 100000, 184600, 350000, 500000].map((preset) => (
-                <button
-                  key={preset}
-                  type="button"
-                  onClick={() => {
-                    setCustomBillInput(preset);
-                    const baseSum = effectiveBillItems.reduce((acc: number, curr: any) => acc + (curr.amount || 0), 0) || 184600;
-                    setCustomBillMultiplier(preset / baseSum);
-                    setIsScanning(true);
-                    setTimeout(() => setIsScanning(false), 400);
-                  }}
-                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
-                    customBillInput === preset
-                      ? 'bg-[#2464A4] text-white shadow-xs'
-                      : 'bg-slate-100 text-[#596980] hover:bg-slate-200'
-                  }`}
-                >
-                  {formatINR(preset)}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Ledger Table with Optical Scan Beam */}
-        <div className="rounded-[32px] bg-white border border-white/80 shadow-xl overflow-hidden relative">
-          {/* Subtle optical scan-line beam when changing archetypes */}
-          {isScanning && (
-            <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-[#2464A4] to-transparent animate-pulse z-20 top-0 transition-all duration-500" />
-          )}
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-[#FAF9F6] text-[#596980] uppercase font-bold border-b border-slate-200 tracking-wider text-[10px]">
-                <tr>
-                  <th className="py-4 px-6">Expense Item</th>
-                  <th className="py-4 px-4">Billed Amount</th>
-                  <th className="py-4 px-4">Category &amp; Status</th>
-                  <th className="py-4 px-4">Covered</th>
-                  <th className="py-4 px-4">Deduction</th>
-                  <th className="py-4 px-6">Policy Evidence Reference</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 font-medium text-[#0D1C34]">
-                {filteredBillItems.map((item, idx) => {
-                  const isProtected = item.category === 'non_associated';
-                  const isExcluded = item.category === 'excluded';
-                  return (
-                    <tr key={idx} className="hover:bg-slate-50/80 transition-colors">
-                      <td className="py-4 px-6 font-semibold">{item.name}</td>
-                      <td className="py-4 px-4 font-mono font-bold">{formatINR(item.amount)}</td>
-                      <td className="py-4 px-4">
-                        <span
-                          className={`inline-block px-2.5 py-1 rounded-full text-[11px] font-semibold border ${
-                            isProtected
-                              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                              : isExcluded
-                              ? 'bg-amber-50 text-amber-800 border-amber-200'
-                              : 'bg-[#E8E4F6] text-[#2464A4] border-[#D9D3EF]'
-                          }`}
-                        >
-                          {item.status}
-                        </span>
-                      </td>
-                      <td className="py-4 px-4 font-mono font-bold text-emerald-700">
-                        {formatINR(item.covered)}
-                      </td>
-                      <td className="py-4 px-4 font-mono font-bold text-red-600">
-                        {item.deduction > 0 ? `− ${formatINR(item.deduction)}` : '₹0'}
-                      </td>
-                      <td className="py-4 px-6 text-[11px] text-[#596980]">
-                        {item.evidence}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          <div className="p-5 bg-[#FAF9F6] border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between text-xs text-[#596980] gap-3">
-            <span>
-              Showing {filteredBillItems.length} items. Total {activeArchetype === 'vehicle' ? 'Workshop Estimate' : activeArchetype === 'income' ? 'Household Deficit' : 'Emergency Bill'}: <strong className="font-mono text-[#0D1C34]">{formatINR(totalBillSum)}</strong>
-            </span>
-            <Link
-              href="/intake"
-              className="text-xs font-bold text-[#2464A4] hover:underline inline-flex items-center gap-1"
-            >
-              <span>Upload Fresh Emergency Document</span>
-              <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ==========================================================
-          13. FINANCIAL GAP ENGINE: DETERMINISTIC WATERFALL
-          100% Dynamically Calculated across All Archetypes
-          ========================================================== */}
-      <section className="py-12 sm:py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="rounded-[36px] sm:rounded-[48px] bg-white border border-white/80 p-8 sm:p-14 shadow-2xl">
-          <div className="max-w-3xl mb-12">
-            <span className="inline-block text-xs font-bold uppercase tracking-widest text-[#2464A4] mb-2 bg-[#E8E4F6] px-3 py-1 rounded-full">
-              DETERMINISTIC WATERFALL
-            </span>
-            <h2 className="font-serif-editorial text-4xl sm:text-5xl font-normal text-[#0D1C34] tracking-tight">
-              Where does the gap come from?
-            </h2>
-            <p className="mt-3 text-base text-[#596980]">
-              Every rupee between the total bill and the payable amount is accounted for with mathematical certainty.
-            </p>
-          </div>
-
-          {/* Visual Waterfall Flow */}
-          <div className="grid lg:grid-cols-5 gap-4 items-center">
-            {/* 1. Total Bill */}
-            <div className="rounded-3xl p-6 bg-[#FAF9F6] border border-slate-200">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-[#596980]">
-                {activeArchetype === 'vehicle' ? 'Total Workshop Estimate' : activeArchetype === 'income' ? 'Total Emergency Shock' : 'Total Hospital Bill'}
-              </span>
-              <div className="text-2xl sm:text-3xl font-black font-mono text-[#0D1C34] mt-2">
-                {formatINR(totalBillSum)}
-              </div>
-              <p className="text-xs text-[#596980] mt-1">Itemized Gross Invoice</p>
-            </div>
-
-            <div className="hidden lg:flex items-center justify-center text-2xl font-bold text-slate-400">
-              −
-            </div>
-
-            {/* 2. Potentially Covered */}
-            <div className="rounded-3xl p-6 bg-emerald-50 border border-emerald-200">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-800">
-                Directly Covered
-              </span>
-              <div className="text-2xl sm:text-3xl font-black font-mono text-emerald-800 mt-2">
-                {formatINR(totalCoveredSum)}
-              </div>
-              <p className="text-xs text-emerald-700 mt-1">Insurer / Shielded Benefit</p>
-            </div>
-
-            <div className="hidden lg:flex items-center justify-center text-2xl font-bold text-slate-400">
-              =
-            </div>
-
-            {/* 3. Final Calculated Gap */}
-            <div className="rounded-3xl p-7 bg-[#2464A4] text-white shadow-xl relative overflow-hidden">
-              <div className="absolute top-2 right-2">
-                <span className="inline-block px-2.5 py-0.5 rounded-full bg-[#D9FF32] text-[#0D1C34] text-[10px] font-bold">
-                  Calculated Gap
-                </span>
-              </div>
-              <span className="text-[11px] font-bold uppercase tracking-widest text-blue-100">
-                Potential Gap to Arrange
-              </span>
-              <div className="text-3xl sm:text-4xl lg:text-5xl font-black font-mono text-white mt-2">
-                {formatINR(arrangedAmount)}
-              </div>
-              <p className="text-xs text-blue-100 mt-2 font-medium">
-                {activeArchetype === 'vehicle'
-                  ? `Depreciation (${formatINR(totalDeductionSum - (effectiveBillItems.find((i: any) => i.category === 'excluded')?.deduction || 0))}) + Consumables/Salvage (${formatINR(effectiveBillItems.find((i: any) => i.category === 'excluded')?.deduction || 0)})`
-                  : activeArchetype === 'income'
-                  ? `Fixed Living Costs & Salary Gap Shielded via Liquidity Bridge`
-                  : `Room upgrade deduction (${formatINR(Math.max(0, totalDeductionSum - 6000))}) + Consumables (${formatINR(Math.min(totalDeductionSum, 6000))})`}
-              </p>
-            </div>
-          </div>
-
-          {/* Composition Bars */}
-          <div className="mt-10 p-6 rounded-2xl bg-[#FAF9F6] border border-slate-200">
-            <div className="text-xs font-bold text-[#0D1C34] mb-3">Gap Composition Breakdown:</div>
-            
-            <div className="h-4 w-full bg-slate-200 rounded-full overflow-hidden flex">
-              <div
-                style={{ width: `${Math.min(100, Math.max(0, totalBillSum > 0 ? (totalCoveredSum / totalBillSum) * 100 : 75))}%` }}
-                className="bg-[#2464A4] h-full"
-                title={`Covered: ${formatINR(totalCoveredSum)}`}
-              />
-              <div
-                style={{ width: `${Math.min(100, Math.max(0, totalBillSum > 0 ? (totalDeductionSum / totalBillSum) * 100 : 25))}%` }}
-                className="bg-amber-500 h-full"
-                title={`Gap: ${formatINR(arrangedAmount)}`}
-              />
-            </div>
-
-            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-              <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-full bg-[#2464A4]" />
-                <span className="text-[#596980]">
-                  Covered Claim:{' '}
-                  <strong className="text-[#0D1C34]">
-                    {formatINR(totalCoveredSum)} ({totalBillSum > 0 ? ((totalCoveredSum / totalBillSum) * 100).toFixed(1) : 0}%)
-                  </strong>
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="h-3 w-3 rounded-full bg-amber-500" />
-                <span className="text-[#596980]">
-                  Out-of-Pocket Gap:{' '}
-                  <strong className="text-[#0D1C34]">
-                    {formatINR(arrangedAmount)} ({totalBillSum > 0 ? ((totalDeductionSum / totalBillSum) * 100).toFixed(1) : 0}%)
-                  </strong>
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ==========================================================
-          14. RECOVERY SIMULATOR: LIVE MODELING
-          ========================================================== */}
-      <section id="recovery" className="py-12 sm:py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="rounded-[36px] sm:rounded-[48px] bg-white border border-white/80 p-8 sm:p-14 shadow-2xl">
-          <div className="max-w-2xl mb-10">
-            <span className="inline-block text-xs font-bold uppercase tracking-widest text-[#2464A4] mb-2 bg-[#E8E4F6] px-3 py-1 rounded-full">
-              {t('rec_badge')}
-            </span>
-            <h2 className="font-serif-editorial text-4xl sm:text-5xl font-normal text-[#0D1C34] tracking-tight">
-              {t('rec_title')}
-            </h2>
-            <p className="mt-3 text-base text-[#596980]">
-              {t('rec_desc')}
-            </p>
-          </div>
-
-          <div className="grid lg:grid-cols-12 gap-10 items-center">
-            {/* Left: Slider & Strategy buttons */}
-            <div className="lg:col-span-7 space-y-8">
-              <div className="p-6 rounded-3xl bg-[#FAF9F6] border border-slate-200">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#596980]">
-                    {t('rec_amt_label')}
-                  </span>
-                  <span className="font-mono text-2xl sm:text-3xl font-bold text-[#2464A4]">
-                    {formatINR(arrangedAmount)}
-                  </span>
-                </div>
-
-                <input
-                  type="range"
-                  min="5000"
-                  max="300000"
-                  step="1000"
-                  value={arrangedAmount}
-                  onChange={(e) => setArrangedAmount(Number(e.target.value))}
-                  className="w-full h-2.5 bg-slate-200 rounded-full appearance-none cursor-pointer"
-                />
-
-                <div className="flex justify-between text-[11px] font-mono text-[#596980] mt-2">
-                  <span>₹5,000</span>
-                  <span className="font-bold text-[#2464A4]">{t('rec_modeled_gap')}: {formatINR(arrangedAmount)}</span>
-                  <span>₹3,00,000</span>
-                </div>
-              </div>
-
-              <div>
-                <span className="text-xs font-bold uppercase tracking-wider text-[#596980] block mb-3">
-                  {t('rec_mode_label')}
-                </span>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                  <button
-                    onClick={() => setSelectedRecoveryOption('available')}
-                    className={`p-3 rounded-2xl text-xs font-bold border transition-all text-center cursor-pointer ${
-                      selectedRecoveryOption === 'available'
-                        ? 'bg-[#0D1C34] text-white border-[#0D1C34] shadow-sm'
-                        : 'bg-white text-[#596980] border-slate-200 hover:bg-slate-50'
-                    }`}
-                  >
-                    {t('rec_opt_available')}
-                  </button>
-                  <button
-                    onClick={() => setSelectedRecoveryOption('partial')}
-                    className={`p-3 rounded-2xl text-xs font-bold border transition-all text-center cursor-pointer ${
-                      selectedRecoveryOption === 'partial'
-                        ? 'bg-[#2464A4] text-white border-[#2464A4] shadow-sm'
-                        : 'bg-white text-[#596980] border-slate-200 hover:bg-slate-50'
-                    }`}
-                  >
-                    {t('rec_opt_partial')}
-                  </button>
-                  <button
-                    onClick={() => setSelectedRecoveryOption('financing')}
-                    className={`p-3 rounded-2xl text-xs font-bold border transition-all text-center cursor-pointer ${
-                      selectedRecoveryOption === 'financing'
-                        ? 'bg-[#0D1C34] text-white border-[#0D1C34] shadow-sm'
-                        : 'bg-white text-[#596980] border-slate-200 hover:bg-slate-50'
-                    }`}
-                  >
-                    {t('rec_opt_financing')}
-                  </button>
-                  <button
-                    onClick={() => setSelectedRecoveryOption('payment')}
-                    className={`p-3 rounded-2xl text-xs font-bold border transition-all text-center cursor-pointer ${
-                      selectedRecoveryOption === 'payment'
-                        ? 'bg-[#0D1C34] text-white border-[#0D1C34] shadow-sm'
-                        : 'bg-white text-[#596980] border-slate-200 hover:bg-slate-50'
-                    }`}
-                  >
-                    {t('rec_opt_payment')}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Right: Simulated Resilience Panel */}
-            <div className="lg:col-span-5 rounded-3xl p-6 sm:p-8 bg-[#FAF9F6] border border-slate-200">
-              <span className="text-xs font-bold uppercase tracking-widest text-[#2464A4] block mb-4">
-                {t('rec_resilience_title')}
-              </span>
-
-              <div className="space-y-4">
-                <div className="p-4 rounded-2xl bg-white border border-slate-200">
-                  <div className="flex items-center justify-between text-xs text-[#596980] mb-1">
-                    <span>{t('rec_buffer_label')}</span>
-                    <span className="font-bold text-[#0D1C34]">{emergencyBufferRatio.toFixed(0)}% intact</span>
-                  </div>
-                  <div className="text-2xl font-bold font-mono text-[#0D1C34]">
-                    {formatINR(remainingSavings)}
-                  </div>
-                  <div className="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
-                    <div
-                      style={{ width: `${Math.min(100, Math.max(0, emergencyBufferRatio))}%` }}
-                      className={`h-full rounded-full ${
-                        emergencyBufferRatio > 40 ? 'bg-emerald-600' : 'bg-amber-500'
-                      }`}
-                    />
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-white border border-slate-200">
-                  <div className="text-xs text-[#596980] mb-1">{t('rec_obligations_label')}</div>
-                  <div className="text-xl font-bold font-mono text-[#0D1C34]">
-                    {formatINR(existingObligations)} / month
-                  </div>
-                  <p className="text-[11px] text-[#596980] mt-1">{t('rec_obligations_sub')}</p>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-white border border-slate-200 flex items-center justify-between">
-                  <div>
-                    <span className="text-xs text-[#596980]">{t('rec_pressure_label')}</span>
-                    <div className="text-lg font-bold text-[#0D1C34] mt-0.5">
-                      {paymentPressure} Impact
-                    </div>
-                  </div>
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-bold ${
-                      paymentPressure === 'Low'
-                        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                        : paymentPressure === 'Manageable'
-                        ? 'bg-amber-50 text-amber-800 border border-amber-200'
-                        : 'bg-red-50 text-red-800 border border-red-200'
-                    }`}
-                  >
-                    {paymentPressure}
-                  </span>
-                </div>
-              </div>
-
-              <div className="mt-6 pt-4 border-t border-slate-200">
-                <Link
-                  href={activeCaseId ? `/case/${activeCaseId}/recovery` : `/intake?amount=${arrangedAmount}&type=medical`}
-                  className="btn-pill-primary w-full justify-center text-xs py-3"
-                >
-                  <span>{t('rec_review_btn')} ({formatINR(arrangedAmount)})</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ==========================================================
-          15. PAYTM EXECUTION SECTION
-          "From plan to action."
-          ========================================================== */}
-      <section className="py-12 sm:py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="rounded-[32px] sm:rounded-[40px] bg-white border border-white/80 p-8 sm:p-12 max-w-4xl mx-auto shadow-2xl">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-slate-200">
-            <div>
-              <span className="text-xs font-bold uppercase tracking-widest text-[#2464A4]">
-                {t('pay_badge')}
-              </span>
-              <h2 className="font-serif-editorial text-3xl sm:text-4xl font-normal text-[#0D1C34] mt-1">
-                {t('pay_title')}
-              </h2>
-              <p className="text-xs sm:text-sm text-[#596980] mt-1">
-                {t('pay_desc')}
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2 rounded-xl bg-slate-50 px-4 py-2 border border-slate-200 shadow-xs">
-              <span className="text-sm font-black text-[#002E6E]">Paytm</span>
-              <span className="text-xs text-[#00BAF2] font-semibold">Payment Gateway</span>
-            </div>
-          </div>
-
-          <div className="mt-6 grid sm:grid-cols-3 gap-6 items-center">
-            <div className="sm:col-span-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#596980]">
-                {t('pay_required_label')}
-              </span>
-              <div className="text-3xl sm:text-4xl font-black font-mono text-[#0D1C34] mt-1">
-                {formatINR(arrangedAmount)}
-              </div>
-              <div className="mt-2 text-xs text-[#596980] space-y-0.5">
-                <p>
-                  <strong>Settlement Purpose:</strong>{' '}
-                  {activeArchetype === 'vehicle'
-                    ? 'Authorized Garage Collision Repair & Salvage Balance'
-                    : activeArchetype === 'income'
-                    ? 'Direct EMI Protection & Sustenance Buffer'
-                    : 'Hospital Inpatient & Provider Gap Settlement'}
-                </p>
-                <p>
-                  <strong>Beneficiary:</strong>{' '}
-                  {activeCaseId
-                    ? `Discharge Billing Desk • Case ${activeCaseId}`
-                    : activeArchetype === 'vehicle'
-                    ? 'Authorized Service Center Billing Desk • Vehicle Release'
-                    : 'Discharge Billing Desk • Inpatient Provider Clearance'}
-                </p>
-              </div>
-
-              {/* Interactive Counter Clearance Chime & Tactile Stamp */}
-              <div className="mt-4 flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    playCounterClearanceChime();
-                    setIsDeskCleared(true);
-                  }}
-                  className="text-xs font-semibold px-4 py-2 rounded-full border border-slate-300 text-slate-700 hover:bg-slate-100 flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-2xs"
-                >
-                  <Sparkles className="h-3.5 w-3.5 text-[#2464A4]" />
-                  <span>Test Soundbox Audio &amp; Stamp</span>
-                </button>
-                {isDeskCleared && (
-                  <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-emerald-50 border-2 border-dashed border-emerald-600 text-emerald-800 font-mono text-[11px] font-bold rotate-[-1deg] animate-in zoom-in-95 duration-200">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
-                    <span>✓ DISCHARGE CLEARED • DESK AUTH #8821</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="flex flex-col items-stretch sm:items-end">
-              <Link
-                href={currentUser ? (activeCaseId ? `/case/${activeCaseId}/payment` : `/intake?amount=${arrangedAmount}&type=${activeArchetype === 'active' ? 'medical' : activeArchetype}`) : "/consent?redirect=/intake"}
-                className="btn-volt justify-center text-xs py-3 px-6 shadow-md"
-              >
-                <span>{currentUser ? t('pay_btn') : "Sign In with Paytm to Settle"}</span>
-              </Link>
-              <span className="text-[10px] text-[#596980] mt-2 text-center sm:text-right">
-                {t('pay_sub')}
-              </span>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* ==========================================================
           16. SECURITY & TRUST GUARANTEE
@@ -2486,7 +1485,7 @@ export default function SahaayLandingPage() {
             <a href="#how-it-works" className="hover:text-white transition-colors">How It Works</a>
             <a href="#how-we-help" className="hover:text-white transition-colors">How We Help</a>
             <a href="#flowpass" className="hover:text-white transition-colors">FlowPass</a>
-            <a href="#recovery" className="hover:text-white transition-colors">Recovery</a>
+            <Link href="/about" className="hover:text-white transition-colors">About Sahaay</Link>
             <a href="#security" className="hover:text-white transition-colors">Security</a>
             <Link href="/consent" className="hover:text-white transition-colors">Sign In</Link>
           </div>
