@@ -8,12 +8,20 @@ Base = declarative_base()
 
 # Try PostgreSQL first, fall back to SQLite if PostgreSQL connection fails
 engine = None
-AsyncSessionLocal = None
+_session_maker = None
+
+class _AsyncSessionProxy:
+    def __call__(self, *args, **kwargs):
+        if _session_maker is None:
+            raise RuntimeError("Database not initialized")
+        return _session_maker(*args, **kwargs)
+
+AsyncSessionLocal = _AsyncSessionProxy()
 
 def init_db(url: str):
-    global engine, AsyncSessionLocal
+    global engine, _session_maker
     engine = create_async_engine(url, echo=False)
-    AsyncSessionLocal = async_sessionmaker(
+    _session_maker = async_sessionmaker(
         engine, expire_on_commit=False, class_=AsyncSession
     )
 
@@ -27,7 +35,7 @@ async def get_db():
             await session.close()
 
 async def create_tables():
-    global engine, AsyncSessionLocal
+    global engine, _session_maker
     # Import all models so Base.metadata knows about them
     import models
     try:
@@ -40,3 +48,4 @@ async def create_tables():
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
         print("Database tables initialized using SQLite fallback.")
+

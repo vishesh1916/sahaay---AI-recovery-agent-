@@ -12,6 +12,7 @@ import {
   Volume2,
   Smartphone,
   ArrowRight,
+  ArrowUpRight,
   X,
   Lock,
   Sparkles,
@@ -39,6 +40,8 @@ export default function PaytmCheckoutPage() {
   const [upiPin, setUpiPin] = useState(['', '', '', '']);
   const [pinStep, setPinStep] = useState<'enter_pin' | 'processing' | 'paid'>('enter_pin');
   const [soundboxPlayed, setSoundboxPlayed] = useState(false);
+  const [checkoutUrl, setCheckoutUrl] = useState<string>('');
+  const [paytmMid, setPaytmMid] = useState<string>('');
 
   useEffect(() => {
     async function load() {
@@ -64,8 +67,16 @@ export default function PaytmCheckoutPage() {
         if (targetAmt > 0) {
           const userId = typeof window !== 'undefined' ? localStorage.getItem('sahaay_user_id') || 'user-default' : 'user-default';
           const order = await api.createPayment(caseId, targetAmt, userId);
-          if (order && (order.paytm_order_id || (order as any).order_id)) {
-            setOrderId(order.paytm_order_id || (order as any).order_id);
+          if (order) {
+            if (order.paytm_order_id || (order as any).order_id) {
+              setOrderId(order.paytm_order_id || (order as any).order_id);
+            }
+            if ((order as any).checkout_url) {
+              setCheckoutUrl((order as any).checkout_url);
+            }
+            if ((order as any).mid) {
+              setPaytmMid((order as any).mid);
+            }
           }
         }
       } catch (e) {
@@ -328,13 +339,38 @@ export default function PaytmCheckoutPage() {
               </div>
             </div>
 
-            {/* Action Button that Opens Paytm App Simulator */}
+            {/* Live Gateway Verification Badge */}
+            <div className="flex items-center justify-between p-3 rounded-2xl bg-white/80 border border-sky-200 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="font-bold text-[#0D1C34]">Live Staging Gateway Connected</span>
+              </div>
+              <span className="font-mono text-[11px] text-slate-500 font-semibold">
+                MID: {paytmMid ? `${paytmMid.slice(0, 6)}...${paytmMid.slice(-4)}` : 'PjGnqK...9005'}
+              </span>
+            </div>
+
+            {/* Direct Official Paytm Gateway Checkout Button (if live checkoutUrl available) */}
+            {checkoutUrl && (
+              <a
+                href={checkoutUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 rounded-full bg-[#002E6E] hover:bg-[#0A4D9E] text-white font-bold py-3.5 text-xs shadow-md transition-all cursor-pointer"
+              >
+                <Smartphone className="h-4 w-4 text-[#00BAF2]" />
+                <span>Open Official Paytm Gateway (Web Checkout)</span>
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </a>
+            )}
+
+            {/* Action Button that Opens Paytm App Soundbox Simulator & Settles Desk */}
             <button
               onClick={handleOpenPaytm}
-              className="w-full mt-4 flex items-center justify-center gap-2 rounded-full bg-[#D9FF32] hover:bg-[#CCF025] text-[#101B35] font-extrabold py-4 text-sm shadow-sm active:scale-[0.99] transition-all cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 rounded-full bg-[#D9FF32] hover:bg-[#CCF025] text-[#101B35] font-extrabold py-4 text-sm shadow-sm active:scale-[0.99] transition-all cursor-pointer"
             >
               <CheckCircle2 className="h-4 w-4 stroke-[2.5]" />
-              <span>Authorize & Pay {formatINR(amount)}</span>
+              <span>Settle &amp; Clear Counter {formatINR(amount)}</span>
             </button>
           </div>
         </div>

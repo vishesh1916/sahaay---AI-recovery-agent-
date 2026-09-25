@@ -52,6 +52,7 @@ async def create_payment(request: PaymentCreateRequest, db: AsyncSession = Depen
         "paytm_order_id": order.order_id,
         "paytm_txn_token": order.txn_token,
         "mid": order.mid,
+        "checkout_url": getattr(order, "checkout_url", ""),
         "created_at": datetime.now().isoformat(),
     }
     payments_store[order.order_id] = payment
