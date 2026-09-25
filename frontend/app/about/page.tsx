@@ -177,10 +177,10 @@ export default function AboutSahaayPage() {
           01. STICKY DYNAMIC NAVBAR (Integrated with Atmospheric Theme)
           ========================================================== */}
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        className={`fixed top-0 left-0 right-0 z-50 transition-[background-color,padding,border-color,box-shadow] duration-300 ${
           isScrolled
             ? 'bg-white/95 backdrop-blur-md shadow-lg py-3 border-b border-[#D9D3EF]/70'
-            : 'bg-transparent py-5 sm:py-6'
+            : 'bg-transparent py-5 sm:py-6 border-b border-transparent shadow-none'
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">

@@ -170,10 +170,10 @@ export default function SahaayLandingPage() {
           Seamlessly floating transparent at top -> Translucent white on scroll
           ========================================================== */}
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+        className={`fixed top-0 left-0 right-0 z-50 transition-[background-color,padding,border-color,box-shadow] duration-300 ${
           isScrolled
             ? 'bg-white/95 backdrop-blur-md shadow-lg py-3.5 border-b border-[#D9D3EF]/70'
-            : 'bg-transparent py-5 sm:py-6'
+            : 'bg-transparent py-5 sm:py-6 border-b border-transparent shadow-none'
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
@@ -398,9 +398,9 @@ export default function SahaayLandingPage() {
         
         {/* Full-bleed background image with optical parallax & seamless alpha fade */}
         <div
-          className="absolute inset-0 z-0 will-change-transform"
+          className="absolute -top-12 -bottom-12 inset-x-0 z-0 will-change-transform"
           style={{
-            transform: `translate3d(0, ${scrollY * 0.18}px, 0)`,
+            transform: `translate3d(0, ${Math.max(0, scrollY) * 0.15}px, 0)`,
           }}
         >
           <Image
