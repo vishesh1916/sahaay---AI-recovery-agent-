@@ -447,15 +447,9 @@ export default function SahaayAuthScreen() {
           {authMethod === 'google' && (
             <div className="space-y-4 text-center py-2">
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-left">
-                <div className="flex items-center justify-between mb-1">
-                  <div className="flex items-center gap-2 text-xs font-bold text-[#0D1C34]">
-                    <Shield className="h-4 w-4 text-[#2464A4]" />
-                    <span>Google Identity Assertion</span>
-                  </div>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    OAuth 2.0 Linked
-                  </span>
+                <div className="flex items-center gap-2 text-xs font-bold text-[#0D1C34] mb-1">
+                  <Shield className="h-4 w-4 text-[#2464A4]" />
+                  <span>Google Identity Assertion</span>
                 </div>
                 <p className="text-[11px] text-slate-600 leading-snug">
                   Authorize with your Google account to automatically secure your case documents and access historical claims across devices.
@@ -490,11 +484,6 @@ export default function SahaayAuthScreen() {
 
                 {/* Optional GSI Embedded iframe container */}
                 <div id="google-btn-container" className="flex items-center justify-center w-full min-h-[0px]" />
-
-                <div className="flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
-                  <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-                  <span>Google Identity Services 2.0 (Official Account Picker)</span>
-                </div>
               </div>
 
               {/* Toggle for manual email entry */}
