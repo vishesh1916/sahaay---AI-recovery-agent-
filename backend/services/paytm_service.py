@@ -9,10 +9,13 @@ from config import settings
 logger = logging.getLogger(__name__)
 
 try:
-    from paytmchecksum import PaytmChecksum
+    from utils.paytm_checksum import PaytmChecksum
 except ImportError:
-    PaytmChecksum = None
-    logger.warning("paytmchecksum module not found, fallback mode enabled")
+    try:
+        from paytmchecksum import PaytmChecksum
+    except ImportError:
+        PaytmChecksum = None
+        logger.warning("PaytmChecksum module not found, fallback mode enabled")
 
 class PaytmOrder:
     def __init__(self, order_id: str, txn_token: str, amount: float, mid: str, checkout_url: str = ""):
