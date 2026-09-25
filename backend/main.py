@@ -5,13 +5,12 @@ from database import create_tables
 from routes import api_router
 from config import settings
 
+import asyncio
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    try:
-        await create_tables()
-        print("Database tables verified.")
-    except Exception as e:
-        print(f"Database connection note (using fallback state): {e}")
+    # Non-blocking schema verification so Uvicorn binds to $PORT in 0.001s
+    asyncio.create_task(create_tables())
     yield
 
 app = FastAPI(title="SAHAAY AI Backend", lifespan=lifespan)
