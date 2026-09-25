@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     PAYTM_MID: str = ""
     PAYTM_MERCHANT_KEY: str = ""
     PAYTM_CALLBACK_URL: str = "http://localhost:8000/payments/callback"
+    GOOGLE_CLIENT_ID: str = ""
+    GOOGLE_CLIENT_SECRET: str = ""
     CORS_ORIGINS: list[str] = ["*"]
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
