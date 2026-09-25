@@ -1,13 +1,21 @@
-"""Policy RAG (Retrieval Augmented Generation) service using ChromaDB."""
-import chromadb
-from chromadb.config import DEFAULT_TENANT, DEFAULT_DATABASE, Settings as ChromaSettings
+"""Policy RAG (Retrieval Augmented Generation) service using ChromaDB with keyword fallback."""
 import uuid
 
+try:
+    import chromadb
+    from chromadb.config import DEFAULT_TENANT, DEFAULT_DATABASE, Settings as ChromaSettings
+except ImportError:
+    chromadb = None
+
 class PolicyRAG:
-    """Index and search insurance policy documents using ChromaDB."""
+    """Index and search insurance policy documents using ChromaDB or keyword search."""
     
     def __init__(self):
-        self.client = chromadb.Client(ChromaSettings(anonymized_telemetry=False))
+        if chromadb:
+            self.client = chromadb.Client(ChromaSettings(anonymized_telemetry=False))
+        else:
+            self.client = None
+        self.fallback_docs = {}
         self.collection_name = "policy_documents"
     
     def _get_collection(self, case_id: str):
